@@ -1,0 +1,21 @@
+\section{Discussion}
+
+\tool optimizes constraint solving by trading space for time. Even if a problem is not a strict DP problem, 
+\tool conducts optimization as long as the memoization of intermediate results can reduce duplicated computation. 
+Thus, \tool is not limited to solving DP problems. It can also handle some non-DP problems that can be formulated as DP-oriented models. 
+For instance, ``Graph Coloring'' is about coloring the $N$ nodes in a graph with $C$ different colors such that no two adjacent nodes have the same color. 
+This non-DP problem can be described as a DP-oriented model with $T=N$. \tool optimizes the solving process when $N$ is small (e.g., $N=10$), but does not do that when $N$ is large (e.g., 50) because the space cost is too high. 
+
+%Graph Coloring represents another kind of non-DP problems that can be handled by \tool. By definition, ``Graph Coloring'' is about coloring the $N$ nodes in a graph with $C$ different colors such that no two adjacent nodes have the same color. 
+
+%By modeling it as a DP problem with aftereffects $T=N$, \tool can optimize the constraint solving when $N$ is small, but gives up the optimization when $N$ is so large that lots of memory are required to store the value assignments of the previous $(N-1)$ elements
+
+%For some DP problems with aftereffects, \tool may or may not optimize constraint solving depending on the input data size. For instance, ``Graph Coloring'' is about coloring the $N$ nodes in a graph with $C$ different colors such that no two adjacent nodes have the same color.
+
+%When we model this problem as a DP problem, $T=N$, meaning that for each subproblem containing $n$ nodes, we should record the optimal color assignment 
+
+%	However, our approach fails to solve dynamic programming on tree, such as Matrix Chain Multiplication. That is because we can only process linear arrays. And it is not easy to describe tree structures by constraints.
+
+%	In this paper, we focus on generating dynamic programming algorithms to solve subproblems in constraint models more efficiently. Dynamic programming algorithms trade time with space, so the use of our approach should take the trade-off between time and space into consideration.
+
+%    Our approach performs static analysis and generates the the dynamic programming algorithms statically. Therefore, our approach is naturally incremental: we only need to generate the algorithms once and then we can deal with many different inputs without regenerating the program. However, which algorithm is selected to use is influenced by the values of the input arguments.

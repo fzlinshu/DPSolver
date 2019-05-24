@@ -1,0 +1,14 @@
+\section{Conclusion and Future Work}
+
+\tool opportunistically optimizes constraint solving if a problem (1) uses any array variable and (2) can be reformulated as a DP-oriented problem. We focused on dynamic programming because although it is a popularly used problem-solving paradigm for large problems, it has not been exploited to efficiently solve constraints. 
+
+Our research has made three contributions. First, \tool analyzes a given problem modeled with MiniZinc to automatically check for two DP-related properties. Second, \tool converts problem descriptions to DP-oriented models in novel ways such that DP problems and some non-DP problems can be be efficiently resolved by generic constraint solvers. 
+Third, we applied \tool and related techniques to nine representative COP problems (including DP and non-DP problems). Impressively, our evaluation demonstrates that \tool outperforms current tools with dozens of or even hundreds of speedups.  
+
+Our investigation demonstrates the effectiveness of accelerating constraint solving via dynamic programming. \tool currently handles problems containing array variables. In the future, we will improve \tool to also handle problems having variables of other data structures, such as trees. 
+Given a problem description written in natural languages, we also plan to automatically create a DP-oriented model by extracting arguments, variables, constraints, and objective functions directly from the description. In this way, users will learn about which problem is efficiently solvable and what is the corresponding MiniZinc model. 
+%problem description written in natural languages. Several works on finding approximate optimal solutions by reinforcement learning are undergoing, which are based on the subproblem construction method described in this paper.
+
+%	We have introduced our approach that generates dynamic programming algorithms to deal with arrays in constraint solving. In our approach, problems that is written in a general constraint modeling language will be processed and analyzed automatically. We design subproblems and generate recursive formulas and verify the optimization structure, then generate the program and estimate the space and time cost. The evaluation results show that our approach can be widely applied on pure dynamic programming problems, and is more efficient than existing constraint solvers.
+
+%	We are planning to make a further step on optimizing our approach to solve more types of dynamic programming programs, including dynamic programming on tree, or dynamic programming optimized by data structures. 

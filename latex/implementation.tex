@@ -1,0 +1,28 @@
+\section{Implementation}
+\label{sec:impl}
+
+\tool is implemented based on a widely used  open-source constraint solver Gecode~\cite{schulte2006gecode}. 
+Given a user-provided MiniZinc model, \tool analyzes the problem, converts the model to a DP-oriented model when possible, and passes the model to Gecode. 
+If \tool cannot optimize a model, it passes the original model to Gecode. 
+If multiple alternative DP-oriented models are generated, \tool passes the best one. 
+
+For some problems, \tool implements extra handling to optimize constraint solving as much as possible. 
+
+	\begin{description}
+		\item[Problems with aftereffects.] 
+		Some problems (e.g., longest increasing subsequence) have the \textbf{\emph{aftereffect property}}. Namely, the value of $o_i(\cdot)$ depends on not only $o_{i-i}(\cdot)$ or $b[i]$, but also elements in $b[1:i-1]$ (e.g., $b[i-1]$). \tool handles such problems by saving more data for each subproblem. If the computation of $o_i(\cdot)$ depends on last $T$ elements in $b$, i.e., $b[i-T:i-1]$, then \tool increases the table by $T$ dimensions to save the involved $T$ elements.  
+		%	has aftereffect property because the value of the next subproblem depends upon not only the current subproblem but also the previous one. When a problem has aftereffect, the original thinning method cannot be used for transforming constraints into recurrence equations. One possible solution is, rewriting variables and constraints in another form to avoid aftereffect, which is hard to be accomplished automatically.
+		
+		%In our approach, we introduce a Side Effect Constant $T$ during transforming. By storing the values of the last $T$ elements of $X$, problems with short aftereffect (no more than $T$) is still solvable.
+		
+		\item[Problems without optimal substructures.] Some problems (e.g., blackhole) have overlapping subproblems but no optimal substructures. Even though they are not DP problems, \tool still optimizes them by memoizing solutions to subproblems for data reuse. Instead of saving data as ``$M[i, c_i]=extreme\text{ }o_i(\cdot)$'', \tool saves ``$M[i, c_i, j]=true/false$'' to indicate ``\emph{given $i$ elements and constraint value $c_i$, whether or not $o_i$ is equal to j.''}. 
+		All saved data will be enumerated when \tool searches for the best solution. 
+		%No existing dynamic programming generation method is able to solve this type of problems. Our approach translates such a problem to a SAT problem: instead of finding the optimal value of the objective function, we figure out all possible values of the function, then choose the best one at the end of the program.
+		
+		\item[Problems with two or more candidate variables.] 
+		Some problems (see Figure~\ref{fig:knapsack3}) have multiple candidate variables for DP optimization. 
+		%For some problems, solving algorithms may be composed by multiple dynamic programming algorithms. 
+		Prior DP program generation approaches~\cite{Moor1994Categories,Sauthoff2011Bellman,Morihata2014Dynamic} cannot deal with such problems. In comparison, \tool handles these problems by concatenating arrays into a large array. Given multiple array variables B=\{$b1$, $b2$, \ldots, $bn$\}, \tool enumerates subsets of $B$ to explore various concatenated arrays and assess different optimization strategies. 
+		%is able to solve problems containing multiple dynamic programming algorithms by dealing with not only a single array but also a set of multiple arrays.
+	\end{description}
+

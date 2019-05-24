@@ -1,0 +1,76 @@
+\section{Introduction}
+When solving a constraint optimization problem (COP), a general solver searches for an assignment of variables to (1) satisfy the constraints on those variables and (2) optimize an objective function. Such search may require repetitive computation when different branches on a search tree lead to the same subproblem. The unnecessary redundant work can cause the worst case complexity of search to be $O(2^n)$, where n is the number of variables for assignments. 
+
+Existing methods avoid or reduce redundant search via caching~\cite{Smith2005}, symmetry breaking~\cite{Gent2006}, subproblem dominance~\cite{chu2012exploiting}, problem  decomposition~\cite{kitching2007symmetric}, branch-and-bound pruning~\cite{marinescu2005and}, or lazy clause generation~\cite{ohrimenko2009propagation}. For instance, caching memoizes search states to prevent the same state from being recomputed~\cite{Smith2005}. 
+Symmetry breaking and subproblem dominance identify the equivalence or dominance relationship between states to avoid useless state  exploration~\cite{Gent2006,chu2012exploiting}. Symmetric component caching decomposes a COP into disjoint subproblems via variable assignments, such that each subproblem is solved independently to compose the optimal solution~\cite{kitching2007symmetric}. 
+%Branch-and-bound search prunes unpromising paths if a partial solution tree can never lead to a solution better than the existing known optimum (i.e., bound)~\cite{marinescu2005and}. 
+Lazy Clause Generation (LCG) identifies constraints related to conflicts, and generates new constraints (nogoods) to reduce search~\cite{ohrimenko2009propagation}. 
+
+Dynamic programming (DP) is 
+a classical method for solving complex problems. 
+Given a hard problem, DP decomposes it into 
+simpler subproblems, solves each subproblem once, stores their solutions with a table, and conducts table lookup when a subproblem reoccurs~\cite{Bertsekas:2000}. 
+Although DP seems a nice search algorithm for COP solutions, we have not seen it to be used in constraint solving. 
+Therefore, this paper explores how well DP helps optimize constraint solving. 
+There are three major research challenges: 
+%We were curious how well DP helps with constraint solving, so this paper focuses on optimizing constraint solving with DP. 
+
+%To solve a COP via DP, we need to tackle three challenges:
+%To optimize constraint solving via DP, we need to tackle three challenges: 
+
+\begin{itemize}
+    \item Given a COP, how can we automatically decide whether the problem is efficiently solvable with DP? 
+    \item If a problem can be solved with DP, how can we implement the DP search?
+    \item When there are multiple ways to conduct DP search for a problem, how can we automatically choose the best one with optimal search performance? 
+\end{itemize}
+
+To address these challenges, we designed and implemented a novel approach \tool, which opportunistically accelerates constraint solving in a non-intrusive way. 
+Specifically, given a COP described in MiniZinc---a widely used constriant modeling language~\cite{nethercote2007minizinc}, \tool determines  whether the problem has (1) optimal substructures and (2) overlapping subproblems; if so, the problem is efficiently solvable with DP. Next, for each solvable problem, \tool
+converts the original model to a DP-oriented model, such that a general constraint solver (i.e., Gecode~\cite{schulte2006gecode}) essentially conducts DP search when processing the new model. 
+Third, if multiple DP-oriented models are feasible, \tool estimates the computation complexity of each model to choose the fastest one.  
+
+We applied \tool to nine optimization problems, 
+including seven DP problems and two non-DP ones. \tool significantly speeded up the constraint solving process for all problems.  
+We also applied two state-of-the-art optimized constraint solvers---\textsc{ChuffedC} (caching) and \textsc{ChuffedL} (LCG)---to the same dataset for comparison, and observed that \tool significantly outperformed both techniques. 
+
+%\tool introduces negligible runtime overhead when it cannot solve a COP via DP
+
+
+%	Combinatorial optimization problems widely exist in real world applications. Several constraint solving approaches \cite{Kuchcinski2013JaCoP,choco,schulte2006gecode} have been proposed to address combinatorial optimization problems. In these approaches, typically users first model the problems using dedicated constraint modeling languages, and then heuristic search algorithms are employed to solve these problems. 
+	
+%	However, a large class of combinatorial optimization problems are dynamic programming problems, or containing dynamic programming problems as subproblems. Typical dynamic programming problems include optimal consumption and saving problem in economics \cite{Weissensteiner2009A}, sequence alignment problem in genetics \cite{Needleman1970A}. While dynamic programming problems can be solved by heuristic search algorithm, the efficiency cannot match up to dedicated dynamic programming algorithms.
+	
+%	In this paper we aim to address problems or subproblems by dynamic programming algorithms in general constraint models. Our approach works by doing an additional analysis step before the solving process, and replaces some part of search by dynamic programming. The analysis step is static and the time is usually negligible compared to the problem solving time. And the replaced dynamic programming algorithm is much more efficient than the original search algorithm. Given a constraint model, our approach determines whether some arrays in this model are suitable to be dealt with by dynamic programming. If so, we generate dynamic programming algorithms to find values for these arrays, and report the time complexity and space complexity of the algorithms. The user could then employ policies to decide, based on the complexities of the generated dynamic programming algorithms, whether to use one of the algorithms, or to use a traditional solver to solve the whole problem.
+	
+\begin{comment}
+    
+	
+    \subsection{Challenges}
+	
+    If a problem can be efficiently solved by dynamic programming, it must have optimal substructure and overlapping subproblems \cite{T2012Introduction}. Optimal substructure means that an optimal solution to a problem contains an optimal solution to subproblems. Overlapping subproblems means that a recursive algorithm to solve this problem will revisit the same subproblem over and over again. To determine whether a problem has the properties, we need to (1) first divide the problem into subproblems, and then show (2) the subproblems have optimal substructure and (3) are overlapping. However, all the three problems are challenging to solve.
+	
+	\begin{itemize}
+	\item For the first problem, though there exist algorithms \cite{Bird1997Algebra,Morihata2014Dynamic} to divide a problem into subproblems, these algorithms require the problem to be represented as a fold-based functional program. It is still unknown how to divide a problem described by constraint modeling languages.
+	
+	\item For the second problem, though existing studies have defined sufficient necessary conditions for optimal substructure \cite{Moor1994Categories}, as far as we are aware, none of these conditions can be checked automatically. We still need to find conditions that can be checked automatically.
+	
+	\item The third problem is challenging because whether the subproblems overlap usually not only depends on the problem but also depends on the potential rules or patterns of the input data. With only problem description and the raw input data, it is often impossible to determine whether the subproblems overlap or not.
+
+    \end{itemize}	
+	
+	\subsection{Our Solution}
+	
+	To address the three challenges, our approach includes the following novelty contributions. 
+	\begin{itemize}
+	    \item To address the first problem, we only concentrate on well-structured arrays in the constraint models. We further design an algorithm that divides the problem into subproblems along the index domain of the arrays.
+	    \item To address the second problem, we only check whether an elementary function has the optimal substructure property by its derivative. Our algorithm checks a sufficient condition but nevertheless can be executed automatically. As our experiments will show, this sufficient condition is large enough to cover common dynamic programming problems.
+	    \item Instead of trying to solve the third problem statically, which is impossible in most cases, our approach tries all combinations of arrays and produces a set of dynamic programming algorithms and their complexities. Then based on the input data of a problem, a solver could estimate the time and space consumption of each algorithm and then the selection is made by either the solver or the user.
+	\end{itemize}
+
+	\bigskip
+	
+	We implement a fully-automatic solver called \tool. \tool accepts a constraint model and data described in MiniZinc as input, detects dynamic programming subproblems, generates dynamic programming algorithms for subproblems, then solves the whole problem with search and one of the most suitable dynamic programming algorithm. The process can be done without any help from the user.
+	
+	In our experiment, we compare \tool with state-of-the-art constraint solvers, Gecode \cite{schulte2006gecode} and \textsc{Chuffed} \cite{chu2012exploiting} on a benchmark of several dynamic programming problems. The results show that our approach is much faster than the other solvers. We also performed a theoretical comparison between our approach and other related approaches, and identified three subclasses of dynamic programming problems that can only be solved by our approach but not other related approaches.
+	
+	\end{comment}

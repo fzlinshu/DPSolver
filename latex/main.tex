@@ -17,7 +17,6 @@
 \usepackage{times}
 \usepackage{soul}
 \usepackage{url}
-\usepackage[hidelinks]{hyperref}
 \usepackage[utf8]{inputenc}
 \usepackage[small]{caption}
 \usepackage{graphicx}
@@ -26,6 +25,7 @@
 \usepackage{listings}
 \usepackage{multirow}
 \usepackage{multicol}
+ \usepackage{mathrsfs}
 \urlstyle{same}
 \usepackage{xspace}
 \usepackage{booktabs}
@@ -52,11 +52,22 @@
 \newtheorem{lemma}[theorem]{Lemma}
 \renewcommand{\qedsymbol}{$\blacksquare$}
 
+%\title{Opportunistic Constraint Optimization for Subproblem Reuse in Constraint Solving}
 \title{
 Optimizing Constraint Solving via Dynamic Programming
 }
 
-
+\author{
+Shu Lin$^1$\footnote{Contact Author}\and
+Na Meng$^2$\and
+Wenxin Li$^1$\\
+\affiliations
+$^1$Department of Computer Science and Technology, Peking University, Beijing, China\\
+$^2$Department of Computer Science, Virginia Tech, Blacksburg, VA, USA\\
+\emails
+\{fzlinshu,lwx\}@pku.edu.cn,
+nm8247@vt.edu
+}
 %the following title seems to be too general
 %\title{Exploiting Subproblem Reuse in Constraint Programming}
 
@@ -70,6 +81,7 @@ Optimizing Constraint Solving via Dynamic Programming
 
 \input{intro}
 \input{example}
+%\input{related}
 \input{approach}
 \input{implementation}
 \input{evaluation}

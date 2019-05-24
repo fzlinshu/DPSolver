@@ -1,5 +1,11 @@
 \section{Discussion}
 
+Theoretically, \tool is applicable when a model $\mathcal{M}$ meets two criteria:
+(1) $\mathcal{M}$ describes a discrete optimization problem that has overlapping subproblems; and
+(2) $\mathcal{M}$ has at least an array or set of same-typed variables.
+The first one ensures the opportunity to trade space for time. Namely, if there is redundant computation between subproblems, we can save computed results to remove duplicated calculation.
+The second one ensures the applicability of the table-based search. With a fixed linear ordering between variables, we can efficiently index and retrieve solutions to subproblems.
+
 \tool optimizes constraint solving by trading space for time. Even if a problem is not a strict DP problem, 
 \tool conducts optimization as long as the memoization of intermediate results can reduce duplicated computation. 
 Thus, \tool is not limited to solving DP problems. It can also handle some non-DP problems that can be formulated as DP-oriented models. 

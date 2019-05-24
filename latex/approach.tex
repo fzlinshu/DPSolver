@@ -31,16 +31,13 @@ By doing so, \tool can also handle problems with set variables. We name the iden
 Next, \tool checks 
 whether any candidate variable is used in at least one constraint and one objective function; if so, \tool may find optimization opportunities when enumerating all value assignments to the variable. 
 In Figure~\ref{fig:knapsack}, both the constraint and objective can be treated as functions of the newly created array $b$ as below: 
-
-
-%are both defined based on the  \codefont{knapsack} variable. Mathematically, 
 \begin{equation}
 \label{eq1}
    \sum_{i=1}^{N}b[i]*W[i] \le C \text{, where }b[i]\in\{0, 1\}  \tag{3.1}
 \end{equation}
 \begin{equation}
 \label{eq2}
-    max \sum_{i=1}^{N}b[i]*V[i] \text{, where }b[i]\in\{0, 1\}  \tag{3.2}
+    maximize \sum_{i=1}^{N}b[i]*V[i] \text{, where }b[i]\in\{0, 1\}  \tag{3.2}
 \end{equation}
 When these functions have any accumulative operator (e.g., $sum$), it is feasible to further break down the problem into subproblems.
 Thus, \tool treats the variable \codefont{b} together with related functions as a candidate for DP application.
@@ -65,7 +62,7 @@ f_N(W, b)&=f_{N-1}(W, b) + b[N] * W[N] \nonumber\\
 c_N(W, b)&=C-f_N(W, b) \nonumber\\
 c_N(W, b)& \ge 0, \nonumber
 \end{align}
-where $f_i(W, b) (i\in[1, N])$ computes weight summations for the first $i$ items given (1) item weight array $W$ and (2) the boolean array $b$.
+where $f_i(W, b) (i\in[1, N])$ computes weight sums for the first $i$ items given (1) item weight array $W$ and (2) the boolean array $b$.
 The function $c_i(W, b)$ subtracts $f_i(W, b)$ from capacity $C$, obtaining a value limited by the lower bound $0$. This function essentially defines the constraint for each subproblem.  
 %For any value assignment of $b$, this function produces the corresponding weight summation. 
 If we enumerate all possible value assignments of $b$, $f_N(W, b)$ produces all valid weight summations accordingly, mimicking the exhaustive search process. 
@@ -75,15 +72,17 @@ Similarly, the objective function (\ref{eq2}) can be transferred to
 \label{fun2}
 o_0(V, b)&=0 \nonumber\\
 o_1(V, b)&=o_0(V, b) + b[1] * V[1]\nonumber\\
-opt_1(V, b)&=max \text{ }o_1(V, b) \nonumber\\
+opt_1(V, b)&=maximize \text{ }o_1(V, b) \nonumber\\
 \ldots \tag{3.4}\\
 o_N(V, b)&=o_{N-1}(V, b) + b[N] * V[N]\nonumber\\
-opt_N(V, b)&=max\text{ }o_N(V, b), \nonumber
+opt_N(V, b)&=maximize\text{ }o_N(V, b), \nonumber
 %optimal[i][j]&=\left\{
 %\right.
 \end{align}
 where $o_N(V, b)$ calculates the value summation.
 The function $opt_i(V, b)$ defines the optimization goal for each subproblem related to the first $i$ items. When all possible value assignments are explored for $b$, $o_N(V, b)$ and $opt_N(V, b)$ functions can be executed to obtain the maximal summation. 
+
+In addition, for other constraints without accumulative functions, \tool simply converts each constraint to an "if-clause".
 
 %$o1(V, b)$ can be used to produce the value summations this function produces the value summations accordingly to obtain the maximal summation. 
 
@@ -100,21 +99,22 @@ We first defined and proved the following theorem:
 \label{thm1}
 Given two sets of functions, $O=\{o_0(\cdot), o_1(\cdot), o_2(\cdot),  \ldots, o_n(\cdot)\}$ and  $Opt=\{opt_1(\cdot), opt_2(\cdot), \ldots, opt_n(\cdot)\}$ (``$\cdot$'' is a placeholder for arguments), for any $i\in[1, n]$, suppose that
 \begin{itemize}
-    \item $o_i(\cdot)=h(o_{i-1}(\cdot), b[i])$ where $b$ is a candidate variable and $h$ is a monotonically increasing function of $o_{i-1}(\cdot)$,  
-    \item $opt_i(\cdot)=max\text{ }o_i(\cdot)$. 
+    \item $o_i(\cdot)=h(o_{i-1}(\cdot), b[i])$ where $b$ is a candidate variable and h is monotonically increasing in $o_{i-1}(\cdot)$,  
+    \item $opt_i(\cdot)=maximize\text{ }o_i(\cdot)$. 
     %, and \item $l(h(\cdot))=h(l(\cdot))$, namely, $l$ and $h$ are commutative.
 \end{itemize}
-Then $opt_i(\cdot)$ is also a monotonic function of $opt_{i-1}(\cdot)$. 
+Then $opt_i(\cdot)$ is monotonically increasing in $opt_{i-1}(\cdot)$. 
 \end{theorem}
 
+\begin{comment}
 \begin{proof}
 For any $i\in[1, n]$, 
 %since $o_{i-1}(\cdot) \le max \text{ }o_{i-1}(\cdot)$ and $h$ increases monotonically, we deduce that $h(o_{i-1}(\cdot))\le h(max \text{ }o_{i-1}(\cdot))$, namely, $o_i\le h(max \text{ }o_{i-1}(\cdot))$. As $h(max\text{ }o_{i-1}(\cdot))$ is the maximum value that $o_i(\cdot)$ can obtain, we have $max\text{ }o_i(\cdot)=h(max \text{ }o_{i-1}(\cdot))$.  
 \begin{align}
-    &\because o_{i-1}(\cdot) \le max \text{ }o_{i-1}(\cdot) \nonumber\\
-    & \therefore h(o_{i-1}(\cdot), b[i])\le h(max \text{ }o_{i-1}(\cdot), b[i]) \nonumber\\
-     &\therefore o_i(\cdot) \le h(max \text{ }o_{i-1}(\cdot), b[i])\nonumber\\ %(o_i(\cdot)=h(o_{i-1}(\cdot)))\nonumber\\
-     &\therefore max\text{ }o_i(\cdot)=h(max \text{ }o_{i-1}(\cdot), b[i]), i.e.,  \nonumber \\
+    &\because o_{i-1}(\cdot) \le maximize \text{ }o_{i-1}(\cdot) \nonumber\\
+    & \therefore h(o_{i-1}(\cdot), b[i])\le h(maximize \text{ }o_{i-1}(\cdot), b[i]) \nonumber\\
+     &\therefore o_i(\cdot) \le h(maximize \text{ }o_{i-1}(\cdot), b[i])\nonumber\\ %(o_i(\cdot)=h(o_{i-1}(\cdot)))\nonumber\\
+     &\therefore maximize\text{ }o_i(\cdot)=h(maximize \text{ }o_{i-1}(\cdot), b[i]), i.e.,  \nonumber \\
      & opt_i(\cdot)=h(opt_{i-1}(\cdot), b[i]) \nonumber
      %& \therefore l(max\text{ }o_i(\cdot))=l(h(max \text{ }o_{i-1}(\cdot)))\nonumber\\
      %&\therefore opt_i(\cdot)=l(h(max \text{ }o_{i-1}(\cdot)))\nonumber\\
@@ -123,20 +123,20 @@ For any $i\in[1, n]$,
 \end{align}
 Therefore, $opt_i(\cdot)$ is a monotonic function of $opt_{i-1}(\cdot)$. The optimal solution can be composed with the optimal solution to a subproblem. \qedhere  
 \end{proof}
-Similarly, we defined and proved a related theorem when the $max$ function used in Theorem~\ref{thm1} is replaced with $min$. Furthermore, there are problems whose $opt_i(\cdot)$ functions are expressions of $max\text{ }o_i$ (e.g., $max\text{ }o_i+3$) instead of $max\text{ }o_i$ itself. 
+\end{comment}
+Similarly, we defined and proved a related theorem when the $maximize$ function used in Theorem~\ref{thm1} is replaced with $minimize$. Furthermore, there are problems whose $opt_i(\cdot)$ functions are expressions of $max\text{ }o_i$ (e.g., $maximize\text{ }o_i+3$) instead of $maximize\text{ }o_i$ itself. 
 To ensure the generalizability of our approach, we also consider such problems 
-to have optimal substructures as long as $max\text{ }o_i$ is a function of $max\text{ }o_{i-1}$. 
-This is because when the \textbf{\emph{extreme value}} ($max$ or $min$) related to a problem's optimal solution can be computed 
+to have optimal substructures as long as $maximize\text{ }o_i$ is a function of $maximize\text{ }o_{i-1}$. 
+This is because when the \textbf{\emph{extreme value}} ($maximize$ or $minimize$) related to a problem's optimal solution can be computed 
 with the extreme values derived for subproblems,
 we can always construct the optimal solution by reusing extreme values from subproblems. 
 
 %we still generally consider such problems to have optimal substructures, because the optimal solution can be computed based on some maximum values computed for subproblems.  
 
-Based on the above theorems, given converted objective functions, \tool locates the used $max$ or $min$ function and tentatively matches $h$. 
+Based on the above theorems, given converted objective functions, \tool locates the used $maximize$ or $minimize$ function and tentatively matches $h$. 
 For each matched $h$ function, \tool takes the derivative to check for any monotonicity property.
 %For each matched $l$, \tool checks whether the evaluation order between $l$ and $h$ can be swapped. 
 For our example (function sets (\ref{fun2})), we have 
-
 \begin{align}
     & h_{0/1}(o_{i-1}(\cdot))=o_{i-1}(\cdot)+b[i]*V[i]. \nonumber
    % & l_{0/1}(x)=x
@@ -160,6 +160,8 @@ any $i\in[1, n]$, suppose that
 Then there exist overlapping subproblems of $f_n(\cdot)$ and $c_n(\cdot)$ 
 between different value assignments of $b$.
 \end{theorem}
+
+\begin{comment}
 \begin{proof}
 This theorem includes two parts: 
 (1) $f_n(\cdot)$ has overlapping subproblems; and (2)  $c_n(\cdot)$ has overlapping subproblems. Here we demonstrate the proof by induction for $f_n(\cdot)$. 
@@ -192,10 +194,10 @@ The proof for $c_n(\cdot)$ is similar.
 \end{enumerate}
 Therefore, when different value assignments of $b$ are explored, there are overlapping subproblems to resolve. 
 \end{proof}
+\end{comment}
 
 Based on Theorem~\ref{thm2}, given converted constraint functions, \tool tries to match $p$ and $q$ by using or unfolding the formulas of 
  $f$ and $c$ functions. Thus, for our example (function sets (\ref{fun1})), the matched functions are
-
 \begin{align}
     & p_{0/1}(f_{i-1}(\cdot), b[i])=f_{i-1}(\cdot)+b[i]*W[i], \nonumber\\
     & q_{0/1}(f_{i-1}(\cdot), b[i])=C-f_{i-1}(\cdot)-b[i]*W[i]. \nonumber

@@ -1,0 +1,15 @@
+D:/Documents/workspace/gecode/CMakeFiles/gecodesupport.dir
+D:/Documents/workspace/gecode/CMakeFiles/gecodeflatzinc.dir
+D:/Documents/workspace/gecode/CMakeFiles/gecodekernel.dir
+D:/Documents/workspace/gecode/CMakeFiles/gecodeminimodel.dir
+D:/Documents/workspace/gecode/CMakeFiles/gecodesearch.dir
+D:/Documents/workspace/gecode/CMakeFiles/gecodeint.dir
+D:/Documents/workspace/gecode/CMakeFiles/gecodeset.dir
+D:/Documents/workspace/gecode/CMakeFiles/gecodefloat.dir
+D:/Documents/workspace/gecode/CMakeFiles/gecodedriver.dir
+D:/Documents/workspace/gecode/CMakeFiles/gecodegist.dir
+D:/Documents/workspace/gecode/CMakeFiles/gecode-test.dir
+D:/Documents/workspace/gecode/CMakeFiles/fzn-gecode.dir
+D:/Documents/workspace/gecode/CMakeFiles/RUN_TESTS.dir
+D:/Documents/workspace/gecode/CMakeFiles/ALL_BUILD.dir
+D:/Documents/workspace/gecode/CMakeFiles/ZERO_CHECK.dir

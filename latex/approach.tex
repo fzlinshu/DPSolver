@@ -56,14 +56,21 @@ For instance, the constraint formula (\ref{eq1}) can be converted to
 f_0(W, b)&=0 \nonumber\\
 f_1(W, b)&=f_0(W, b) + b[1] * W[1] \nonumber\\
 c_1(W, b)&=C-f_1(W, b)\nonumber\\
-c_1(W, b)&\ge0 \nonumber\\
+c_1(W, b)&\ge min\{0, (N - i) * min\{W[1], \ldots, W[N]\}\} \nonumber\\
 \ldots \tag{3.3}\\  
 f_N(W, b)&=f_{N-1}(W, b) + b[N] * W[N] \nonumber\\
 c_N(W, b)&=C-f_N(W, b) \nonumber\\
-c_N(W, b)& \ge 0, \nonumber
+c_N(W, b)& \ge min\{0, (N - i) * min\{W[1], \ldots, W[N]\}\} \nonumber
 \end{align}
-where $f_i(W, b) (i\in[1, N])$ computes weight sums for the first $i$ items given (1) item weight array $W$ and (2) the boolean array $b$.
-The function $c_i(W, b)$ subtracts $f_i(W, b)$ from capacity $C$, obtaining a value limited by the lower bound $min\{0, (n-i)w\}$, where $w$ is the minimum weight among all items. \tool scanned the input data to obtain $w > 0$, and simplified the lower bound to $0$. This function essentially defines the constraint for each subproblem. Here, $c_i$ means ``the remaining capacity limit for the last $(N-i)$ item''. The value of $c_i$ helps decide whether an item can be added to the knapsack. Namely, if the weight of $(i+1)^{th}$ item is greater than $c_i$, this item cannot be added.
+
+Here, $f_i(W, b) (i\in[1, N])$ computes weight sums for the first $i$ items given (1) the item weight array $W$ and (2) the boolean array $b$.
+The function $c_i(W, b)$ subtracts $f_i(W, b)$ from capacity $C$, to define the constraint for each subproblem. Here, $c_i$ means ``the remaining capacity limit for the last $(N-i)$ items''. 
+The value of $c_i$ is limited by the lower bound $min\{0, (N - i) * min\{W[1], \ldots, W[N]\}\}$, and helps decide whether an item should be added to the knapsack. Namely, if the weight of $(i+1)^{th}$ item is greater than $c_i$'s value, the item cannot be added.
+%The value of $c_i$ is limited by the lower bound $(N - i) * min\{W[1], \ldots, W[N]\}$.
+%, where $w$ is the minimum weight among all items. \tool scanned the input data to obtain $w > 0$, and simplified the lower bound to $0$. 
+%The $c_i$ function essentially defines the constraint for each subproblem. 
+%Here, $c_i$ means ``the remaining capacity limit for the last $(N-i)$ item''. 
+%The value of $c_i$ helps decide whether an item can be added to the knapsack. Namely, if the weight of $(i+1)^{th}$ item is greater than $c_i$, this item cannot be added.
 
 Similarly, the objective function (\ref{eq2}) can be transferred to
 \begin{align}
@@ -73,11 +80,12 @@ o_1(V, b)&=o_0(V, b) + b[1] * V[1]\nonumber\\
 opt_1(V, b)&=max \text{ }o_1(V, b) \nonumber\\
 \ldots \tag{3.4}\\
 o_N(V, b)&=o_{N-1}(V, b) + b[N] * V[N]\nonumber\\
-opt_N(V, b)&=max\text{ }o_N(V, b), \nonumber
+opt_N(V, b)&=max\text{ }o_N(V, b) \nonumber
 %optimal[i][j]&=\left\{
 %\right.
 \end{align}
-where $o_N(V, b)$ calculates the value summation.
+
+Here, $o_N(V, b)$ calculates the value summation.
 The function $opt_i(V, b)$ defines the optimization goal for each subproblem related to the first $i$ items. When all possible value assignments are explored for $b$, $o_N(V, b)$ and $opt_N(V, b)$ functions can be executed to obtain the maximal summation. 
 
 %$o1(V, b)$ can be used to produce the value summations this function produces the value summations accordingly to obtain the maximal summation. 

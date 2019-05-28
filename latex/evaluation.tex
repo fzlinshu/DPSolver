@@ -68,6 +68,7 @@ To evaluate the effectiveness of \tool, we created a data set of 9 representativ
     %\item Graph coloring: Color the N nodes of a graph with C colors such that no adjacent nodes have the same color.
 \end{itemize}
 The first seven problems are DP problems, and the last two problems are non-DP ones because they do not have the P1 property. The DP structures of those problems are distinct, and they are representative and cover most of the common DP structures from DP exercises.
+
 We applied \tool, Gecode~\cite{schulte2006gecode}, and \textsc{Chuffed}~\cite{chu2012exploiting} to the data set. Specifically,
 %Gecode is a widely used state-of-the-art constraint solver. 
 \textsc{Chuffed} can be run as a na\"ive solver (denoted as \textsc{Chuffed}), a solver with automatic caching (\textsc{ChuffedC}), or a solver with Lazy Clause Generation~\cite{ohrimenko2009propagation}. Although both \textsc{ChuffedC} and \textsc{ChuffedL} reduce redundant search, \textsc{ChuffedC} reuses active and non-satisfied constraints while \textsc{ChuffedL} uses constraints involved in conflicts to generate new constraints (nogoods). 

@@ -6,11 +6,25 @@ Theoretically, \tool is applicable when a model $\mathcal{M}$ meets two criteria
 The first one ensures the opportunity to trade space for time. Namely, if there is redundant computation between subproblems, we can save computed results to remove duplicated calculation.
 The second one ensures the applicability of the table-based search. With a fixed linear ordering between variables, we can efficiently index and retrieve solutions to subproblems.
 
+In practice, \tool’s capability is also limited by another two conditions:
+(3) All constraints in $\mathcal{M}$ are defined with the built-in operations, global constraints, and non-recursive functions provided by MiniZinc. This is imposed by our current tool implementation.
+(4) The available memory space allocated by users should be sufficient to hold a table. Suppose that
+\begin{itemize}
+\item there are $N$ elements in a candidate array;
+\item the size of each element’s value range is $D$;
+\item there are $m$ ($m \geq 1$) accumulative functions related to the array;
+\item for the $i^{th}$ accumulative function, the size of the constraint value’s range is $R_i$; and
+\item the aftereffect value is $T$.
+\end{itemize}
+Then the space complexity is $O(N D^T \prod\limits_{i=1}^m R_i)$. With this formula, \tool decides whether the complexity value is larger than the allocated space; if not, \tool optimizes the model.
+
 \tool optimizes constraint solving by trading space for time. Even if a problem is not a strict DP problem, 
 \tool conducts optimization as long as the memoization of intermediate results can reduce duplicated computation. 
 Thus, \tool is not limited to solving DP problems. It can also handle some non-DP problems that can be formulated as DP-oriented models. 
 For instance, ``Graph Coloring'' is about coloring the $N$ nodes in a graph with $C$ different colors such that no two adjacent nodes have the same color. 
-This non-DP problem can be described as a DP-oriented model with $T=N$. \tool optimizes the solving process when $N$ is small (e.g., $N=10$), but does not do that when $N$ is large (e.g., 50) because the space cost is too high. 
+This non-DP problem can be described as a DP-oriented model with $T=N$. \tool optimizes the solving process when $N$ is small (e.g., $N=10$), but does not do that when $N$ is large (e.g., 50) because the space cost is too high.
+
+We manually checked the 130 models in MiniZinc benchmarks \footnote{https://github.com/MiniZinc/minizinc-benchmarks}. \tool can fully optimize 9 models, and partially optimize 44 models (i.e., work for smaller value ranges). The other problems have complicated constraints, and can be potentially handled by \tool if we simplify the constraints.
 
 %Graph Coloring represents another kind of non-DP problems that can be handled by \tool. By definition, ``Graph Coloring'' is about coloring the $N$ nodes in a graph with $C$ different colors such that no two adjacent nodes have the same color. 
 

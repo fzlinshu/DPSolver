@@ -1,14 +1,35 @@
 \section{Related Work}
+This section describes related work on automatic optimization of constraint solving (Section~\ref{sec:opt_related}), constraint solving with DP (Section~\ref{sec:dp_related}), and tabling (Section~\ref{sec:table_related}). 
     
-A number of methods are used for avoiding or reducing redundant search.
-Caching memoizes search states prevent the same state from being recomputed~\cite{Smith2005}. 
+\subsection{Optimizers of Constraint Solving}\label{sec:opt_related}
+When constraint solvers are used to search solutions for COP tasks, 
+a number of methods were proposed to avoid or reduce redundant search in the process~\cite{Smith2005,Gent2006,kitching2007symmetric,ohrimenko2009propagation,chu2012exploiting}. Specifically, 
+caching memoizes search states to prevent the same state from being recomputed~\cite{Smith2005}. 
 Symmetry breaking and subproblem dominance identify the equivalence or dominance relationship between states to avoid useless state  exploration~\cite{Gent2006,chu2012exploiting}. Symmetric component caching decomposes a COP into disjoint subproblems via variable assignments, such that each subproblem is solved independently to compose the optimal solution~\cite{kitching2007symmetric}. 
 Lazy Clause Generation (LCG) identifies constraints related to conflicts, and generates new constraints (nogoods) to reduce search~\cite{ohrimenko2009propagation}.
-Compared with these optimization methods, \tool uses dynamic programming instead of search in solving. Thus \tool outperforms current tools by orders of magnitude if is applicable.
 
-A number of methods solve problems by DP-related algorithms. Auto-tabling~\cite{dekker2017auto} removes repetitive calculation by saving the results. It provides MiniZinc annotations, with which modelers can define and insert table constraints. Similarly, the Picat tabling~\cite{zhou2015constraint} requires users to specify the variables for tabling. Different from these tools, DPSolver automatically detects memoization opportunities and creates tables without any user input.
-DPE~\cite{prestwich2018towards} is a method to model DP in Constraint Programming (CP). With this method, a modeler can specify a DP problem by defining a CP model via KOLMOGOROV---a constraint specification language. In comparison, DPSolver detects any DP structure in a constraint model, and reformulates the model as needed.
-\citeauthor{de2019compiling} (\citeyear{de2019compiling}) detected subproblem equivalence by hashing~\cite{chu2012exploiting}, and then used MDDs and formulas in d-DNNFs rather than tables to compute and store solutions. To build an MDD or d-DNNF, a modeler has to specify the constraints, and the domain as well as ordering of related variables. DPSolver is different in two ways. First, it unfolds and analyzes predicates to detect overlapping subproblems and/or optimal substructures. Second, it does not require extra user input.
-GAP~\cite{Sauthoff2011Bellman} is a domain-specific language for users to declaratively specify DP algorithm. It cannot detect any DP problem structure in general constraint models.
-\citeauthor{Moor1994Categories} (\citeyear{Moor1994Categories}) proved the conditions in which we can check monotonicity to verify the optimal substructures. The research inspires our approach of DP problem recognition.
-\citeauthor{Morihata2014Dynamic} (\citeyear{Morihata2014Dynamic}) built a Haskell library for users to describe a problem in a naive enumerate-and-choose style, and derives efficient algorithms to solve the problem. However, the library does not support users to specify the problems with multiple constraints, neither can users specify the three classes of problems listed in Section \ref{sec:impl}.
+Compared with prior work, \tool reduces unnecessary search by (1) identifying optimal substructures and overlapping subproblems in given problem descriptions, and (2) formatting the descriptions as DP-oriented models when possible. Our evaluation shows that \tool worked much better than the state-of-the-art optimizers.
+
+\subsection{Constraint Solving with DP}
+\label{sec:dp_related}
+Researchers created various methods to solve constraints via DP~\cite{Moor1994Categories,Sauthoff2011Bellman,Morihata2014Dynamic,prestwich2018towards}.
+For instance, DPE is a method to model DP in Constraint Programming (CP)~\cite{prestwich2018towards}. With this method, a modeler can specify a DP problem by defining a CP model via KOLMOGOROV---a constraint specification language. 
+GAP is another domain-specific language for DP problem specification~\cite{Sauthoff2011Bellman}. However, 
+none of these approaches can automatically detect any DP problem structure in general constraint models.
+
+Moor proved the conditions in which we can check monotonicity to verify the optimal substructures of given problems~\cite{Moor1994Categories}. The research inspires our approach of DP problem recognition.
+Morihata et al.~built a Haskell library for users to describe a problem in a naive enumerate-and-choose style, and provided an approach that automatically derives efficient algorithms to solve the problem~\cite{Morihata2014Dynamic}. However, the library does not support users to specify any problem with multiple constraints, neither can users specify the three classes of problems listed in Section \ref{sec:impl}.
+
+
+%It cannot detect any DP problem structure in general constraint models.
+%In comparison, DPSolver detects any DP structure in a constraint model, and reformulates the model as needed.
+
+
+\subsection{Tabling}
+\label{sec:table_related}
+
+Approaches were built to save intermediate computation results in certain data structures, so as to reduce or eliminate repetitive computation~\cite{zhou2015constraint,dekker2017auto,de2019compiling}. For example, 
+auto-tabling provides MiniZinc annotations for users to define and insert table constraints and save calculation results to tables~\cite{dekker2017auto}.
+Similarly, the Picat tabling requires users to specify the variables for tabling~\cite{zhou2015constraint}. Different from these tools, DPSolver automatically detects memoization opportunities and creates tables without any user input.
+
+\citeauthor{de2019compiling} detected subproblem equivalence by hashing results~\cite{chu2012exploiting}, and then used MDDs and formulas in d-DNNFs instead of tables to compute and store solutions~\cite{de2019compiling}. To build an MDD or d-DNNF, a modeler has to specify the constraints, and the domain as well as ordering of related variables. DPSolver is different in two ways. First, it unfolds and analyzes predicates to detect overlapping subproblems and/or optimal substructures. Second, it does not require extra user input.

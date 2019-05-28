@@ -1,9 +1,10 @@
-\section{Conclusion and Future Work}
+\section{Conclusion}
 
-\tool opportunistically optimizes constraint solving if a problem (1) uses any array variable and (2) can be reformulated as a DP-oriented problem. We focused on dynamic programming because although it is a popularly used problem-solving paradigm for large problems, it has not been exploited to efficiently solve constraints. 
+\tool opportunistically optimizes constraint solving if a problem (1) uses any array variable and (2) can be reformulated as a DP-oriented problem. We focused on dynamic programming because although it is a popularly used problem-solving paradigm for large problems, it has not been fully exploited to 
+optimize constraint solving. 
 
-Our research has made three contributions. First, \tool analyzes a given problem modeled with MiniZinc to automatically check for two DP-related properties. Second, \tool converts problem descriptions to DP-oriented models in novel ways such that DP problems and some non-DP problems can be be efficiently resolved by generic constraint solvers. 
-Third, we applied \tool and related techniques to nine representative COP problems (including DP and non-DP problems). Impressively, our evaluation demonstrates that \tool outperforms current tools with a speedup of several dozens or even hundreds.  
+Our research has made three contributions. First, \tool analyzes a given problem modeled with MiniZinc to automatically check for two DP-related properties. Second, \tool converts problem descriptions to DP-oriented models in novel ways such that DP problems and some non-DP problems can be efficiently resolved by generic constraint solvers. 
+Third, we applied \tool and related techniques to nine representative COP problems (including DP and non-DP problems). Impressively, our evaluation demonstrates that \tool outperforms current tools with a speedup of several dozens or even hundreds.
 
 Our investigation demonstrates the effectiveness of accelerating constraint solving via dynamic programming. \tool currently handles problems containing array variables. In the future, we will improve \tool to also handle problems having variables of other data structures, such as trees. 
 Given a problem description written in natural languages, we also plan to automatically create a DP-oriented model by extracting arguments, variables, constraints, and objective functions directly from the description. In this way, users will learn about which problem is efficiently solvable and what is the corresponding MiniZinc model. 

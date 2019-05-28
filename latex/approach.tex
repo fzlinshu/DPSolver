@@ -1,4 +1,4 @@
- \section{Approach}
+ \section{Approach}\label{sec:approach}
  
  \tool consists of three phases: DP problem recognition (Section~\ref{sec:recognize}), DP-oriented model description generation (Section~\ref{sec:generate}), and description selection (Section~\ref{sec:select}). 
  Phase II is taken only when Phase I identifies one or more solvable problems in a given MiniZinc model; and Phase III is taken only when Phase II generates multiple alternative models. 
@@ -56,21 +56,22 @@ For instance, the constraint formula (\ref{eq1}) can be converted to
 f_0(W, b)&=0 \nonumber\\
 f_1(W, b)&=f_0(W, b) + b[1] * W[1] \nonumber\\
 c_1(W, b)&=C-f_1(W, b)\nonumber\\
-c_1(W, b)&\ge min\{0, (N - i) * min\{W[1], \ldots, W[N]\}\} \nonumber\\
+c_1(W, b)&\ge 0 \nonumber\\
 \ldots \tag{3.3}\\  
 f_N(W, b)&=f_{N-1}(W, b) + b[N] * W[N] \nonumber\\
 c_N(W, b)&=C-f_N(W, b) \nonumber\\
-c_N(W, b)& \ge min\{0, (N - i) * min\{W[1], \ldots, W[N]\}\} \nonumber
+c_N(W, b)& \ge 0 \nonumber
 \end{align}
 
 Here, $f_i(W, b) (i\in[1, N])$ computes weight sums for the first $i$ items given (1) the item weight array $W$ and (2) the boolean array $b$.
-The function $c_i(W, b)$ subtracts $f_i(W, b)$ from capacity $C$, to define the constraint for each subproblem. Here, $c_i$ means ``the remaining capacity limit for the last $(N-i)$ items''. 
-The value of $c_i$ is limited by the lower bound $min\{0, (N - i) * min\{W[1], \ldots, W[N]\}\}$, and helps decide whether an item should be added to the knapsack. Namely, if the weight of $(i+1)^{th}$ item is greater than $c_i$'s value, the item cannot be added.
+The function $c_i(W, b)$ subtracts $f_i(W, b)$ from capacity $C$, to define the constraint for each subproblem. Here, $c_i$ means ``\emph{the remaining capacity limit for the last $(N-i)$ items}''. 
+The value of $c_i$ helps decide whether an item should be added to the knapsack. Namely, if the weight of the $(i+1)^{th}$ item is greater than $c_i$'s value, the item should not be added.
 %The value of $c_i$ is limited by the lower bound $(N - i) * min\{W[1], \ldots, W[N]\}$.
 %, where $w$ is the minimum weight among all items. \tool scanned the input data to obtain $w > 0$, and simplified the lower bound to $0$. 
 %The $c_i$ function essentially defines the constraint for each subproblem. 
 %Here, $c_i$ means ``the remaining capacity limit for the last $(N-i)$ item''. 
 %The value of $c_i$ helps decide whether an item can be added to the knapsack. Namely, if the weight of $(i+1)^{th}$ item is greater than $c_i$, this item cannot be added.
+Actually, the $c_i$'s value is limited by the lower bound $min\{0, (N - i) * min\{W[1], \ldots, W[N]\}\}$. Because \tool scanned the input data and found all weight values to be greater than 0, the lower bound used in \ref{fun1} was simplified to 0.
 
 Similarly, the objective function (\ref{eq2}) can be transferred to
 \begin{align}
@@ -126,7 +127,7 @@ For any $i\in[1, n]$,
      %&\therefore opt_i(\cdot)=h(l(max\text{ }o_{i-1}(\cdot))) (h \text{ and }l\text{ are commutative})\nonumber\\
     %&\therefore opt_i(\cdot)=h(opt_{i-1}(\cdot))\nonumber
 \end{align}
-Therefore, $opt_i(\cdot)$ is a monotonic function of $opt_{i-1}(\cdot)$. The optimal solution can be composed with the optimal solution to a subproblem. \qedhere  
+Therefore, $opt_i(\cdot)$ monotonically increases in $opt_{i-1}(\cdot)$. The optimal solution can be composed with the optimal solution to a subproblem. \qedhere  
 \end{proof}
 
 Similarly, we defined and proved a related theorem when the $max$ function used in Theorem~\ref{thm1} is replaced with $min$. Furthermore, there are problems whose $opt_i(\cdot)$ functions are expressions of $max\text{ }o_i$ (e.g., $max\text{ }o_i+3$) instead of $max\text{ }o_i$ itself. 
@@ -146,7 +147,7 @@ For our example (function sets (\ref{fun2})), we have
     & h_{0/1}(o_{i-1}(\cdot))=o_{i-1}(\cdot)+b[i]*V[i]. \nonumber
    % & l_{0/1}(x)=x
 \end{align}
-Assuming $h_{0/1}$ to be continuous, \tool finds the derivative to be $\partial o_i(\cdot)/\partial o_{i-1}(\cdot)=1>0$. Therefore, $h_{0/1}$ increases monotonically with $o_{i-1}$. Solutions of the 0-1 knapsack problem have   optimal substructures.  
+Assuming $h_{0/1}$ to be continuous, \tool finds the derivative to be $\partial o_i(\cdot)/\partial o_{i-1}(\cdot)=1>0$. Therefore, $h_{0/1}$ increases monotonically in $o_{i-1}$. Solutions of the 0-1 knapsack problem have   optimal substructures.  
 %Besides, \tool randomly samples multiple values of $b$ and compares the results of $l_{0/1}(h_{0/1}(\cdot)$ and $h_{0/1}(l_{0/1}(\cdot))$. Since these composed functions always produce the same values, \tool concludes that the two functions are commutative.  
 
 %If a problem does not pass this property check, \tool stops its attempt to optimize constraint solving; otherwise, it continues with a second property check. 
@@ -237,7 +238,9 @@ Specifically, given (1) a candidate variable $b$, (2) a series of constraint fun
 In $M$, $i$ corresponds to the array index range of $b$,
 $c_i$ represents the corresponding valid constraint value, while the cell $M[i, c_i]$ saves the extreme value computed for each subproblem, meaning ``\emph{given the first i elements and the constraint value $c[i]$, what is the extreme value of $o_i$}?''. When different values of $b[i]$ are enumerated, the corresponding $c_{i-1}$ can be different. Thus, multiple cells in the row $M[i-1]$ may be reused for computation, and $M[i, c_i]$ is usually decided
 by the value comparison between these cells. 
-By generating such table-driven recursive functions to model a DP problem, \tool can produce a DP-oriented MiniZinc description. Figure~\ref{fig:knapsack2} shows the newly generated model for our example. In particular, \codefont{solve::seq\_search} is used so that the solver does not apply any built-in basic optimization when solving the problem. 
+By generating such table-driven recursive functions to model a DP problem, \tool can produce a DP-oriented MiniZinc description. 
+
+Figure~\ref{fig:knapsack2} shows the newly generated model for our example. In particular, \codefont{solve::seq\_search} is used so that the solver does not apply any built-in basic optimization when solving the problem. 
 The space complexity of creating the $dpvalue$ table is $O(NC)$, while the time complexity is $O(NC)$. This time complexity refers to the whole resolution process because the DP-oriented model is resolved by propagation only.
 %\todo{1. Is this MiniZinc model? 2. More questions concerning the nested 0-1 knapsack problem (space/time complexity). 3. Without optimal substructure, is there any optimization? 4. Problems with after effect. How are the results saved?} 
 
@@ -276,73 +279,17 @@ The space complexity of creating the $dpvalue$ table is $O(NC)$, while the time 
 \caption{DP-oriented model of the 0-1 knapsack problem}\label{fig:knapsack2}
 \end{figure}
 
-\begin{comment}
-To enable DP search for the COP solution, \tool converts the above-mentioned recursive functions to another set of table-oriented recursive functions. 
-%Programs are composed of algorithms and data structures. 
-Since a DP algorithm usually leverages a table to record solutions for subproblems and to reuse these 
-solutions to handle bigger subproblems, we need the converted functions to reflect (1) the DP search logic, and (2) the tabular form. 
-If such conversion can be done successfully, it is very likely that the related constraint solving process can be optimized. After the conversion, we obtained
+\textbf{Handling of Side Constraints.} 
+Some COP models are defined with \emph{side constraints} in addition to accumulative functions. \tool can still process such models by converting each side constraint to an \codefont{if}-clause. 
+For instance, a variant of the 0-1 knapsack problem can have an additional requirement as ``\emph{Item 3 must be put in the knapsack}'', which can be expressed as a side constraint ``\codefont{3 in knapsack}''. For this side constraint, \tool generates an \codefont{if}-clause ``\codefont{if i==3 then if k!=1 then 0 else ...}'' and inserts it to the beginning of the \codefont{calcValue(...)} function in Figure \ref{fig:knapsack2}.
 
-has the two properties mentioned above,  
-
-
-
-The problem has the optimal substructures property if and only if: each $opt_N(V,b)$ can be calculated by $opt_{N-1}(V,b)$. Here we apply a conservative approach to check this property. Since $opt_N(V,b)$ is the maximum value of a function of $o_N(V,b)$ ($opt_N(V,b) = \max f(o_N(V,b))$), we introduce an alternative easy-to-check condition: $f(o_N(V,b))$ is an increasing function and $o_N(V,b)$ is positively correlated with $o_{N-1}(V,b)$. If this sufficient condition is satisfied, \tool creates a two-dimension array $M$ to store the maximum value of $o_N(V,b)$ for each subproblem and use it to calculate both $opt_N(V,b)$ and $o_{N+1}(V,b)$.
-
-\begin{equation}
-    M[i, c_i(W, b)]=\max o_i(V, b)
-\end{equation}
-
-It is still difficult to determine the monotonicity of an arbitrary function, however, our approach only considers elementary functions composed by a finite number of arithmetic operations, exponentials, logarithms, solutions of algebraic equations and constants. We simply regard the functions as continuous functions, then check whether the derivatives $\partial f(o_N(V,b))/\partial o_N(V,b)$ and $\partial o_N(V,b)/\partial o_{N-1}(V,b)$ are always non-negative. The derivative is computed by applying differentiation rules (such as $\partial (x^N)/\partial x=Nx^{N-1}$, $\partial  (f(x)+g(x))/\partial x=\partial f(x)/\partial x+\partial g(x)/\partial x$, $\partial (f(g(x)))/\partial x=\partial f(g(x))/\partial g(x) \cdot \partial g(x)/\partial x$, etc.) on the expression tree of the function.
-
-if the sufficient condition is not satisfied or cannot be verified, \tool is not able to generate DP for the original subproblems.
-However, \tool creates a three-dimension array $M$ and turn to solve new subproblems ``\emph{Given i items and the capacity limit j, can the value summations be k?}'' and store the result (``true'' or ``false'') in $M[i][j][k]$. A problem always has the optimal substructures property while its subproblems are represented in this way. The tricky version of 0-1 Knapsack is an example .
- 
-$(b)$ $Recursive\longrightarrow Recursive$.
-Although DP implements recursion, the above-mentioned recursive functions are not usable by DP for efficient search because of redundant computation. For instance, given two value assignments of $b$ (i.e., $B1$ and $B2$) that have identical values for the first $(N-1)$ items,
-$f_{N-1}(W, b)$ repeats the same computation procedure and outputs the same value. To eliminate redundant computation, we need to rewrite the above  recursive functions such that intermediate results for subproblems are stored to a table, and these results are reused to handle bigger subproblems.
-%The reason is that a DP algorithm usually leverages a table to record solutions for subproblems and reuse these solutions to handle bigger subproblems. 
-
-Specifically, given the candidate variable $b$, one class of constraints ($c_i[W, b]$), and one class of optimization goals ($opt_i[W, b]$), \tool can create a table or two-dimension array $M$, such that
-\begin{equation}
-\label{eq3}
-    M[i, c_i(W, b)]=opt_i(W, b)
-\end{equation}
-In $M$, the first dimension of indexes correspond to the array variable $b$, while the second dimension of indexes are possible constraint values. Each cell saves the optimized value for each subproblem. 
-To facilitate data reuse, \tool further generates  the relationship between adjacent optimized values as
-
-
-    \begin{equation}\label{functionfordp}\small
-	    \begin{split}
-	        &M[i][c_i[W, b]] \\
-	        =&\begin{cases}
-	        0 & i=0\\
-	        M[i-1][c_i[W, b]] & W[i]+c_i[W, b]>0\\
-	        \max(M[i-1][c_i[W, b]], \nonumber \\
-	        \text{ }M[i-1][c_i[W, b]+W[i]]+V[i]) &W[i]+c_i[W, b]<0
-	        \end{cases}
-	    \end{split}
-	\end{equation}
-
-
-To enable DP search for the COP solution, \tool converts the above-mentioned recursive functions to another set of table-oriented recursive functions. 
-%Programs are composed of algorithms and data structures. 
-Since a DP algorithm usually leverages a table to record solutions for subproblems and to reuse these 
-solutions to handle bigger subproblems, we need the converted functions to reflect (1) the DP search logic, and (2) the tabular form. 
-If such conversion can be done successfully, it is very likely that the related constraint solving process can be optimized. After the conversion, we obtained
-
-
-In this table, the first dimension corresponds to the candidate variable, 
-while the second dimension is about the constraint function. Any item in the table $M[i][j]$ represents a subproblem of the original problem, which is ``\emph{Given i items and the capacity limit j, what is the maximal value summations?}''. 
-\end{comment}
-
-In addition, for other constraints without accumulative functions, \tool simply converts each constraint to an ``if-clause'', and then inserts it to the ``calcValue(...)'' function. For example, if we add a side constraint ``\texttt{3 in knapsack}'' to the 0-1 knapsack model, it will be converted to ``\texttt{if i==3 then if k!=1 then 0 else ...}'' and inserted to the beginning of the ``calcValue(...)'' function in Figure \ref{fig:knapsack2}.
+%In addition, for other constraints without accumulative functions, \tool simply converts each constraint to an ``if-clause'', and then inserts it to the ``calcValue(...)'' function. For example, if we add a side constraint ``\texttt{3 in knapsack}'' to the 0-1 knapsack model, it will be converted to ``\texttt{if i==3 then if k!=1 then 0 else ...}'' and inserted to the beginning of the ``calcValue(...)'' function in Figure \ref{fig:knapsack2}.
  
  
  \subsection{Phase III: DP-Oriented Model Selection}
  \label{sec:select}
  
- For some COP problems, \tool can create multiple alternative optimization strategies. Given the space limit (e.g., 4GB) specified by users when they run the tool via commands, \tool automatically estimates the time/space complexity of each alternative, chooses the models whose table sizes are within the space limit, and then recommends the model with best speedup.  
+ For some COP problems, \tool can create multiple alternative optimization strategies. Given the space limit (e.g., 4GB) specified by users when they run the tool via commands, \tool automatically estimates the time/space complexity of each alternative, chooses the models whose table sizes are within the space limit, and then recommends the model with the maximum speedup.  
  
 To better explain this phase, we take the nested 0-1 knapsack problem as another exemplar DP problem (see Figure~\ref{fig:knapsack3}).  
  	\begin{figure}[htb]
@@ -370,19 +317,19 @@ output ["\(K2)"];
 \caption{Model of the nested 0-1 knapsack problem. There are two sets of items ($N1$ and $N2$).
 Choose items in both sets to separately fill two knapsacks: $K1$ and $K2$. If the value sum in $K1$ is used as the capacity of $K2$, try to maximize the value sum in $K2$.}\label{fig:knapsack3}
 \end{figure}
-When analyzing the problem, \tool identifies two candidate variables---$b1$ and $b2$---to separately represent subsets of $N1$ and $N2$.
+When analyzing the problem, \tool identifies two candidate variables---$b_1$ and $b_2$---to separately represent subsets of $N1$ and $N2$.
 %---the boolean array reflecting different subsets of $N1$, and $b2$---another boolean array corresponding to subsets of $N2$. 
 Since both variables are related to constraints, \tool explores and assesses three potential ways to create DP-oriented models: 
 
  \begin{enumerate}
-     \item[(a)] Optimization based on $b2$: %We use $C2$ to record the capacity of $K2$ (i.e., the maximum value sum in $K1$). 
+     \item[(a)] Optimization based on $b_2$: %We use $C2$ to record the capacity of $K2$ (i.e., the maximum value sum in $K1$). 
      When exhaustive search is leveraged to
      fill $K1$ in various ways, for each produced $C2$ value, the optimization problem becomes a regular 0-1 knapsack problem---a DP problem. Therefore, \tool can create a DP-oriented model, with both time and space complexity as $O(N2C2)$. Since the exhaustive search handles such 0-1 knapsack problems with $O(2^{N2})$ time complexity, the optimization speedup is estimated as $(2^{N2}/N2C2)$.
      
-      \item[(b)] Optimization based on $b1$: When exhaustive search is used to fill $K2$ in various ways, for each generated weight sum $sum_w$ in $K2$, we need the value sum in $K1$ (i.e., C2) to be no less than $sum_w$ while the weight sum in $K1$ to be no more than $C1$. Because these converted problems do not have any objective function, they are not considered as DP problems. \tool does not create any model for optimization. 
+      \item[(b)] Optimization based on $b_1$: When exhaustive search is used to fill $K2$ in various ways, for each generated weight sum $sum_w$ in $K2$, we need the value sum in $K1$ (i.e., C2) to be no less than $sum_w$ while the weight sum in $K1$ to be no more than $C1$. Because these converted problems do not have any objective function, they are not considered as DP problems. \tool does not create any model for optimization. 
      
-     \item[(c)] Optimization based on $b1$ and $b2$: \tool concatenates $b1$ and $b2$ to create a larger array $b3$. In $b3$, the first $N1$ elements are involved in the first two constraints, while the last $N2$ elements are related to the third constraint and objective function. Thus, $b3$ is still a candidate variable and the given problem is a DP problem. The exhaustive search obtains $O(2^{N1}2^{N2})$ time complexity. In comparison, DP search has both time and space complexity as 
-     $O((N1+N2)C1Sum)$ time complexity, where $Sum$ is the upper bound of $sum_w$. Consequently, the estimated speedup is $(2^{N1}2^{N2}/(N1+N2)C1Sum)$. Figure \ref{fig:knapsack4} shows the DP-oriented model resulted from this optimization.
+     \item[(c)] Optimization based on $b_1$ and $b_2$: \tool concatenates $b_1$ and $b_2$ to create a larger array $b_3$. In $b_3$, the first $N1$ elements are involved in the first two constraints, while the last $N2$ elements are related to the third constraint and objective function. Thus, $b_3$ is still a candidate variable and the given problem is a DP problem. The exhaustive search obtains $O(2^{N1}2^{N2})$ time complexity. In comparison, DP search has both time and space complexity as 
+     $O((N1+N2)C1Sum)$ time complexity, where $Sum$ is the upper bound of $sum_w$. Consequently, the estimated speedup is $(2^{N1}2^{N2}/(N1+N2)C1Sum)$. 
  \end{enumerate}
  
  	\begin{figure}[htb]
@@ -437,287 +384,10 @@ Since both variables are related to constraints, \tool explores and assesses thr
       maximize max(j in 0..C1)
       (max(k in 0..maxW1*N1)(dpvalue[N,j,k]));
 \end{lstlisting}
-\caption{DP-oriented model of the nested 0-1 knapsack problem when optimized based on both $b1$ and $b2$}\label{fig:knapsack4}
+\caption{DP-oriented model of the nested 0-1 knapsack problem when
+the optimization is based on both $b1$ and $b2$}\label{fig:knapsack4}
 \end{figure}
 
- When the two separately generated models described in (a) and (c) both have their tables smaller than the space limit, \tool suggests the one with more speedup (i.e., (c)). Intuitively, the more array variables are involved in optimization (e.g., $(b1, b2)$ vs.~$b2$), the more performance gain \tool is likely to obtain.  
- 
- 
- \begin{comment}
-   Our approach first processes the problem description. In this example, the set $knapsack$ will be replaced by a 0-1 array with length $N$ to facilitate later analysis. 
-	
-	Now we want to use dynamic programming to assign values to the only array $knapsack$. We divide the problem into a set of subproblems based on its index domain. Since an optimization problem is described as a set of constraints and an optimize goal, to divide the problem into subproblems, we first convert the constraints related to $knapsack$ and the optimization goal as recurrence functions over the index domain of $knapsack$. More concretely, we convert each constraint into the following form:
-	\begin{equation}
-	    f^{(s)}(g^{(s)}) \leq 0, 
-	\end{equation}
-	where $g^{(s)}$ is calculated based on $g^{(s-1)}$ and $knapsack[s]$ and $f^{(s)}$ does not depend on $knapsack$. 
-	
-	Our conversion is inspired by the thinning method used in existing approaches \cite{Morihata2014Dynamic} but is designed for the constraint modeling language. In our example, we will get the following equations.
-	\begin{eqnarray}
-		g^{(s)} & = & g^{(s-1)} + weights[s] \cdot knapsack[s] \\
-		f^{(s)} & = & g^{(s)} - capacity
-	\end{eqnarray}
-	
-	Similarly, the objective function can also be transformed into
-	\begin{equation}
-	    O^{(s)} = O^{(s-1)} + profits[s] \cdot knapsack[s]\label{recfun}
-	\end{equation}
-	
-	Based on the above recurrence functions, we can have the following recursive formula for dynamic programming. 
-	\begin{equation}\label{functionfordp}\small
-	    \begin{split}
-	        &O[s][g]\\
-	        =&\begin{cases}
-	        0 & f^{(s)}(g^{(s)})>0\\
-	        \max\{O[s-1][g],O[s-1][g-weights[i]]+profits[i]\} &otherwise
-	        \end{cases}
-	    \end{split}
-	\end{equation}
-	This formula calculates the optimization goal $O$, where $s$ as one dimension and $g$ from the constraint as another dimension. In the body of the function, we iterate all possible values of $knapsack[i]$, and calculate $g$ and $O$ based on the respective recurrence functions. When the value of $g$ violates the constraint, the value of $O$ is set to a minimum number.
-	
-	To ensure the above formula is correct, we need to check the optimal substructure property. This property can be checked over the Formula \ref{recfun}. We need to show that, when $O^{(s)}$ is optimal, $O^{(s-1)}$ is also optimal. We check this property by automatically calculating the derivative $\frac{\partial O^{(s)}}{\partial O^{(s-1)}}=1$ and checking whether it is always non-negative. It turns out to be true, as the result, the property can be proved.
-	
-	Finally, we analyze the complexity of Formula \ref{functionfordp} and generate the dynamic programming algorithm. 
-
-\section{Methods for Dealing with arrays by Dynamic Programming}
-
-	Our approach for generating dynamic programming algorithm consists of several steps:
-	\begin{enumerate}
-		\item Preprocesses and selects arrays for dynamic programming.
-		\item Designs the subproblems and generates the recursive formulas.
-		\item Verifies optimal substructure.
-		\item Generates the dynamic programming algorithm according to the recursive formulas.
-		\item Estimates the space and time cost.
-	\end{enumerate}
-	
-	\subsection{Preprocessing the Constraint Model and Selecting Arrays for Dynamic Programming}
-	
-	    \subsubsection{Preprocessing.}\label{sec51}
-	
-	    In the preparing step, we remove all unused variables, and divide the remaining variables into two catalogs: independent variables $\mathcal{I}$ and dependent variables $\mathcal{D}$. To achieve this goal, we extract dependencies between variables from constraints, and find the smallest independent variable set $\mathcal{I}$ in size. The size of a variable set is calculated by ranges of variables in the set. Finally, we eliminate variables in $\mathcal{D}$ from constraints by replacing each variable by a function of independent variables and arguments.
-	    
-	    \subsubsection{Selecting arrays.}
-	
-	    In our approach, arrays (either single-dimension or multi-dimension) and sets are regarded as arrays. A set in the constraint model is always replaced by a 0-1 single-dimension array at the beginning. We try to generate a dynamic programming algorithm for every combinations of arrays in $\mathcal{I}$ and estimate the costs on the further steps.
-	    
-	    Our approach only focus on arrays because a model with lots of variables often organizes most of its variables by arrays. And the well-structured arrays are easier to be dealt with by dynamic programming.
-
-	\subsection{Transforming Constraints and the Objective Function}\label{sec52}
-	
-	    To simplify the description, in Section \ref{sec52} to \ref{sec55}, we only consider about the case when the combination of arrays only contains one single-dimension array $X=x_{1:K}$ \footnote{In this paper, we use the notation: $E_{a:b}\equiv E_a, E_{a+1}, \cdots, E_{b}$.}. For combinations containing multiple arrays or multi-dimension arrays, we will discuss in Section \ref{sec56}. 
-		
-		First, an extended thinning method is used for exposing recurrence equations from constraints. The original thinning method can only be applied to equations using \texttt{fold} operator in functional programming. Our method is inspired from the original thinning method, but can be applied to general constraints expressed by elementary functions.
-		
-		For each constraint $c_i$ containing at least one element of $X$,
-		\begin{equation}
-			c_i(x_{1:K}, \mathcal{I} \backslash \{X\}, \mathcal{A}) \otimes 0,
-		\end{equation}
-		where $\otimes$ is one of relational operators $=$, $\neq$, $<$ or $\leq$.
-		
-		Our approach transforms it into:
-		\begin{itemize}
-		\item If $c_i$ contains any aggregation function \texttt{sum}, \texttt{product}, \texttt{min} or \texttt{max} for $X$,
-		\begin{verbatim}
-forall (s in 1..K) (
-		\end{verbatim}
-		\begin{equation}\label{trans1}
-		f_i^{(s)}\bigg[g_i^{(s)}(g_i^{(s-1)}, x_{(s-T):s}, \mathcal{I} \backslash \{X\}, \mathcal{A}), x_{(s-T):s},  \mathcal{I} \backslash \{X\}, \mathcal{A}\bigg] \otimes 0
-		\end{equation}
-\begin{verbatim}
-)
-\end{verbatim}
-        The recurrence function $g_i^{(s)}$ stores some intermediate result that eliminate the effect of previous $x_{1:s-T}$ when calculating the future $g_i$'s and $f_i$'s. For example, for a \texttt{sum} function, $g_i^{(s)}$ records the sum of the first $s$ items.
-		\item If $c_i$ contains an aggregation function \texttt{forall} for $X$,
-		\begin{verbatim}
-forall (s in 1..K) (
-		\end{verbatim}
-		\begin{equation}\label{trans2}
-		f_i^{(s)}\left[x_{(s-T):s}, \mathcal{I} \backslash \{X\}, \mathcal{A}\right] \otimes 0
-		\end{equation}
-\begin{verbatim}
-)
-\end{verbatim}
-		\item Otherwise, suppose $k$ is the largest index of $X$'s elements in $c_i$,
-		\begin{verbatim}
-forall (s in 1..K) (
-    if (s == k) then
-		\end{verbatim}
-		\begin{equation}\label{trans3}
-		c_i(x_{(s-T):s}, \mathcal{I} \backslash \{X\}, \mathcal{A}) \otimes 0
-		\end{equation}
-\begin{verbatim}
-    endif
-)
-\end{verbatim}
-		\end{itemize}
-		
-		The objective function can also be transformed into
-		\begin{equation}\label{trans4}
-			O^{(s)}\left[O^{(s-1)}, x_{(s-T):s}, \mathcal{I} \backslash \{X\}, \mathcal{A}\right],
-		\end{equation}
-		
-		The small non-negative constant $T$ in Formula \ref{trans1} to \ref{trans4} is called the \textbf{Side Effect Constant}. For each constraint $c_i$, let $l_i$ be the smallest index of $X$'s elements in the $s$-th item of the constraint. Then the value of the Side Effect Constant is calculated by
-		\begin{equation}
-		    T=\max\limits_i\{s-l_i\}.
-		\end{equation}
-		
-		The Side Effect Constant indicates that the value of a subproblem on stage $s$ is related to at most $T$ previous elements $x_{(s-T):(s-1)}$. A classical dynamic programming problem should have non-aftereffect property, which means that the value of a future subproblem depends only upon the value of present subproblem, not on the sequence of subproblems that preceded it. In other words, $T$ should be $0$. In this case, constraints such as $x_{i-1} < x_i$ or even a single side constraint $x_3\neq x_6$ will destroy the whole dynamic programming algorithm. However, our approach is able to process these constraints by setting $T$ to a small positive constant ($T = 1$ for constraints $x_{i-1} < x_i$, and $T = 3$ for $x_3\neq x_6$).
-		
-		For Longest Increasing Subsequence problem, array $seq$ is selected to be dealt with by dynamic programming, and $T = 1$. The constraints and the objective function are transformed into
-		\begin{eqnarray}
-			f_1^{(s)} & = & seq[s-1] - seq[s] \\
-			c_1 & : & f_1^{(s)} < 0 \\
-			f_2^{(s)} & = & value[seq[s-1]] - value[seq[s]] \\
-			c_2 & : & f_2^{(s)} < 0 \\
-			O^{(s)} & = & O^{(s-1)} + 1
-		\end{eqnarray}
-	
-	\subsection{Verifying Optimal Substructure and Generating Subproblems and Recursive Formulas}
-	
-		To ensure the correctness of the dynamic programming algorithm, $O^{(s)}$ should have optimal substructure property. More specifically, the optimal value of $O^{(s)}$ are derivable from optimal values of its subproblems $O^{(s-1)}$.
-		
-		It is difficult to verify whether an arbitrary function has optimal substructure property, however, our approach only considers that $O^{(s)}$ is an elementary function composed by a finite number of arithmetic operations, exponentials, logarithms, solutions of algebraic equations and constants. We apply a conservative approach to determine the monotonicity of $O^{(s)}$: we simply regard the objective function as a continuous function, then check whether the derivative $\partial O^{(s)}/\partial O^{(s-1)}$ is always non-negative. The derivative is computed by applying differentiation rules (such as $\partial (x^N)/\partial x=Nx^{N-1}$, $\partial  (f(x)+g(x))/\partial x=\partial f(x)/\partial x+\partial g(x)/\partial x$, $\partial (f(g(x)))/\partial x=\partial f(g(x))/\partial g(x) \cdot \partial g(x)/\partial x$, etc.) on the expression tree of the function. Thus the optimal structure property can be verified automatically.
-				
-		For a problem that has optimal substructure property, a subproblem is indexed by a tuple
-		\begin{equation}
-			\left<s, g_{1:L}^{(s)},x_{(s-T):s}\right>
-		\end{equation}
-		and the goal is to maximize the value of $O^{(s)}$.
-		
-		The recursive formula can be generated by the recurrence functions from the previous step:
-		\begin{equation}
-		    \begin{split}
-		    &O\left(\left<s, g_{1:L}^{(s)},x_{(s-T):s}\right>\right)\\
-		    =&\max\limits_{x_s}O^{(s)}\left[O\left(\left<s-1, g_{1:L}^{(s-1)},x_{(s-T):(s-1)}\right>\right),x_{(s-T):s},\mathcal{I}\backslash\{X\},\mathcal{A}\right]
-		    \end{split}
-		\end{equation}
-		
-		For Longest Increasing Subsequence problem, each subproblem is indexed by
-		\begin{equation}
-			\left<s, seq_{s-1}\right>,
-		\end{equation}
-		and the maximum value of
-		\begin{equation}
-			O^{(s)}=s
-		\end{equation}
-		is calculated and recorded.
-		
-		\bigskip
-		
-		For a problem that does not have optimal substructure property, or the problem is a SAT problem without any objective function, we also have another method to solve it by dynamic programming. In this case, we index each subproblem by
-		\begin{equation}
-			\left<s, g_{1:L}^{(s)},x_{(s-T):s},O^{(s)}\right>.
-		\end{equation}
-		The goal is changed to check whether the value of $O^{(s)}$ can be obtained at current situation.
-		
-		Let us consider a tricky version of 0-1 Knapsack problem. The goal is changed to maximize the least significant digit of the total profit:
-		\begin{lstlisting}
-    maximize (sum (i in knapsack) (profits[i])) mod 10
-		\end{lstlisting}
-		
-		Variable $knapsack$ is still the staged variable, and the new objective function is transformed into
-		\begin{equation}
-			O^{(s)} = \left(O^{(s-1)} + profits[s] \cdot knapsack[s]\right) \mod 10.
-		\end{equation}
-		Obviously, $O^{(s)}$ does not have optimal substructure property. However, for this tricky problem, we can index each subproblem by
-		\begin{equation}
-			\left<s, g_1^{(s)}, O^{(s)}\right>.
-		\end{equation}
-		At the end of the program, we examine all subproblems on the last stage to find the best solution to the original objective function.
-	
-	\subsection{Generating the Dynamic Programming Algorithm}
-	
-		We generate the dynamic programming algorithm in a bottom-up style. The framework of the algorithm is presented as Algorithm \ref{dp}.
-		
-		In the framework, we first calculate the solutions to subproblems on the first stage. The main process of dynamic programming are from Line \ref{begin} to Line \ref{end}. For each subproblem on each stage $s$, the algorithm enumerates each possible value of $x_s$, verifies constraints, calculates the next subproblem, and records the optimal value of $O^{(s)}$. After that, the algorithm looks up the best solution from subproblems on the last stage.
-		
-\begin{algorithm}[htb]
-	\caption{Framework of a dynamic programming algorithm for problems that have optimal substructure property.}\label{dp}
-   	\KwIn{Arguments $\mathcal{A}$, Variables $\mathcal{I}\backslash\{X\}$}
-   	\KwOut{The best assignment for $X$}
-   	bestValue $\gets -\infty$\;
-   	\For {each subprob} {
-   		value[subprob] $\gets -\infty$\;
-	}
-	initialize subproblems on stage 0\;\label{begin}
-	\For {$s \gets 1..K$} {
-		\For {subprob $\gets\left<s-1, g_{1:L}^{(s-1)},x_{(s-T):(s-1)}\right>$} {
-			\For {$x_s \gets$ each possible value} {
-				\For {$i \gets 1..L$} {
-					calculate $g_i^{(s)}$ and $f_i^{(s)}$\;
-					verify constraint $c_i$\;
-				}
-				\If {all constraints are satisfied} {
-					calculate $O^{(s)}$\;
-					nextSubprob $\gets\left<s, g_{1:L}^{(s)},x_{(s-T):s}\right>$\;
-					\If {$O^{(s)} >$ value[nextSubprob]} {
-						value[nextSubprob] $\gets O^{(s)}$\;
-						solution[nextSubprob] $\gets$ current values of variables\;
-					}
-				}
-			}
-		}
-	}\label{end}
-	\For {subprob $\gets\left<K, g_{1:L}^{K},x_{(K-T+1):K}\right>$} {
-		\If {solution[subprob] $>$ bestValue} {
-			bestValue $\gets$ value[subprob]\;
-			bestSolution $\gets$ solution[subprob]\;
-		}
-	}
-   	return bestSolution\;
-\end{algorithm}
-		
-		The framework can be easily used for generating programs in any popular programming language.
-	
-	\subsection{Estimating Cost}\label{sec55}
-	
-		For the given subproblems, we make conservative estimations on the cost of space and time of main process of the dynamic programming in the worst case by Formula \ref{memory} and \ref{time}.
-		
-		Let $C_E$ represents the number of different possible values of a function or variable $E$, which can be estimated from the given input arguments. For a problem that has optimal substructure property, the size of the space of subproblems is
-		\begin{equation}
-			S_{subprob}=O\left(K (\max C_{x_i})^T\prod\limits_{i=1}^L C_{g_i}\right).
-		\end{equation}
-		For a problem that does not have optimal substructure property, the size of the space of subproblems is
-		\begin{equation}
-			S_{subprob}=O\left(K C_O(\max C_{x_i})^T\prod\limits_{i=1}^L C_{g_i}\right).
-		\end{equation}
-		
-		Since only the values of subproblems on stage $(s-1)$ is required for calculating subproblems on stage $s$, we just need to store the values of subproblems on the last stage. Thus the space complexity can be reduced down to
-		\begin{equation}
-			M=O\left(S_{subprob}/K\right).\label{memory}
-		\end{equation}
-		
-		Suppose the time costs for calculating $f_i^{(s)}$, $g_i^{(s)}$ are respectively $O(T_{f_i})$ and $O(T_{g_i})$, then the transfer time for calculating each new subproblem can be estimated by
-		\begin{equation}
-			T_{trans}=O\left((\max C_{x_i})\sum\limits_{i=0}^L (T_{f_i}+T_{g_i})\right).
-		\end{equation}
-		And the total time cost is
-		\begin{equation}
-			T=O\left(T_{trans}S_{subprob}\right).\label{time}
-		\end{equation}
-		
-		Table \ref{complexity} presents the space and time complexity of three problems.
-		
-		\begin{table}[htb]\centering
-		\begin{tabular}{lll}\toprule
-			Problem Name	&	Space Comp.	&	Time Comp.	\\	\midrule
-			0-1 Knapsack &	$O(C)$	&	$O(N \cdot C)$	\\
-			Longest Inc. Subseq. 	&	$O(N)$	&	$O(N^3)$	\\
-			Tricky 0-1 Knapsack	&	$O(M \cdot C)$	&	$O(NM \cdot C)$	\\	\bottomrule
-		\end{tabular}
-		\caption{Space and time complexity of three problems as examples ($C=capacity$)}\label{complexity}
-		\end{table}
-	
-	\subsection{Dealing with a Multi-dimension Array or Multiple Arrays}\label{sec56}
-	
-	    While the combination of arrays we are dealing with does not only contains one single-dimension array, an additional preprocessing step should be done while the main processes remain the same.
-	    
-	    \subsubsection{Dealing with a multi-dimension array.}
-	    
-	    It is easy and safe to extend the index space of $X$'s elements from single-dimension to multi-dimension in all formulas in the main processes. Besides, instead of using a global Side Effect Constant $T$, for a $d$-dimension array, we use $d$ independent constants, one for each dimension.
-	    
-	    \subsubsection{Dealing with multiple arrays.}
-	    
-	    The basic idea is to expand all arrays to the same size by filling zeros to the ends. Then we combine these arrays into one multi-dimension array and deal with it by the method described above.
-	    
-\end{comment}	    
+ When the two separately generated models described in (a) and (c) both have their tables smaller than the space limit, \tool suggests the one with more speedup (i.e., (c)).
+  Figure \ref{fig:knapsack4} shows the DP-oriented model resulted from (c).
+  Intuitively, the more array variables are involved in optimization (e.g., $(b1, b2)$ vs.~$b2$), the more performance gain \tool is likely to obtain.  

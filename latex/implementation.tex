@@ -22,7 +22,10 @@ For some problems, \tool implements extra handling to optimize constraint solvin
 		\item[Problems with two or more candidate variables.] 
 		Some problems (see Figure~\ref{fig:knapsack3}) have multiple candidate variables for DP optimization. 
 		%For some problems, solving algorithms may be composed by multiple dynamic programming algorithms. 
-		Prior DP program generation approaches~\cite{Moor1994Categories,Sauthoff2011Bellman,Morihata2014Dynamic} cannot deal with such problems. In comparison, \tool handles these problems by concatenating arrays into a large array. Given multiple array variables B=\{$b_1$, $b_2$, \ldots, $b_k$\}, \tool enumerates subsets of $B$ to explore various concatenated arrays and assess different optimization strategies. This analysis can be time-consuming when $k$ is large. In such scenarios, we rank arrays based on their lengths and focus the analysis on long arrays.
+		%Prior DP program generation approaches~\cite{Moor1994Categories,Sauthoff2011Bellman,Morihata2014Dynamic} cannot deal with such problems. In comparison, 
+		\tool enumerates and assesses different optimization strategies by 
+		concatenating arrays. With more detail, given multiple array variables B=\{$b_1$, $b_2$, \ldots, $b_k$\}, \tool enumerates subsets in $B$. For instance, if $k=3$, \tool first analyzes each array for any optimization opportunity. Next, \tool 
+enumerates all array pairs for concatenation (e.g., $(b_1, b_2)$, $(b_2, b_3)$, and $(b_1, b_3)$), and analyzes whether any combined array can be used for optimization. Finally, \tool concatenates all arrays to obtain a larger one (e.g., $(b_1, b_2, b_3)$), and decides whether any optimization is applicable. Such analysis can be time-consuming when $k$ is large. In such scenarios, \tool ranks arrays based on their lengths and focuses the analysis on longer  arrays.
 		%is able to solve problems containing multiple dynamic programming algorithms by dealing with not only a single array but also a set of multiple arrays.
 	\end{description}
 

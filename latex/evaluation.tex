@@ -42,6 +42,9 @@
 	
 	\end{table*}
 
+This section first introduces our evaluation data set (Section~\ref{sec:data}). It then describes the experiment settings (Section~\ref{sec:setting}), and then finally explains our results (Section~\ref{sec:results}).  
+
+\subsection{Data Set}\label{sec:data}
 To evaluate the effectiveness of \tool, we created a data set of 9 representative COP tasks:  %(see \url{http://todo}):  
 %Due to the space limit, here we only present and explain the evaluation results for six representative tasks: 
 \begin{itemize}
@@ -62,31 +65,60 @@ To evaluate the effectiveness of \tool, we created a data set of 9 representativ
     \item Modulus 0-1 knapsack: Similar to 0-1 knapsack but the objective is to maximize the last digit of the value sum. 
     
    %Minimize the amount of time the source has to be switched on, as well as the number of patterns used (setup time of machine).
-    \item Blackhole: The poker game is begun by moving Ace of Spades to the blackhole,
-    and arranging the other 51 cards as 17 piles of 3 cards each. 
+    \item Blackhole:    
+    A player starts this solitaire card game by (1) moving Ace of Spades to the blackhole,
+    and (2) arranging the other 51 cards as 17 piles of 3 cards each. 
     In each turn, a card at the top of any pile can be moved to the blackhole if it is +1/-1 from the previous one. Find a way to move all cards.
     %\item Graph coloring: Color the N nodes of a graph with C colors such that no adjacent nodes have the same color.
 \end{itemize}
-The first seven problems are DP problems, and the last two problems are non-DP ones because they do not have the P1 property. The DP structures of those problems are distinct, and they are representative and cover most of the common DP structures from DP exercises.
+The first seven problems are DP problems, and the last two problems are non-DP ones because they do not have the P1 property. 
+We chose these problems in our evaluation for three reasons. First, 
+the DP structures of the problems are distinct.
+Second, they are representative and cover most of the common DP structures from DP exercises.
+Third, the variants of knapsack are easy to explain and understand. 
+
+\subsection{Experiment Settings}\label{sec:setting}
 
 We applied \tool, Gecode~\cite{schulte2006gecode}, and \textsc{Chuffed}~\cite{chu2012exploiting} to the data set. Specifically,
 %Gecode is a widely used state-of-the-art constraint solver. 
-\textsc{Chuffed} can be run as a na\"ive solver (denoted as \textsc{Chuffed}), a solver with automatic caching (\textsc{ChuffedC}), or a solver with Lazy Clause Generation~\cite{ohrimenko2009propagation}. Although both \textsc{ChuffedC} and \textsc{ChuffedL} reduce redundant search, \textsc{ChuffedC} reuses active and non-satisfied constraints while \textsc{ChuffedL} uses constraints involved in conflicts to generate new constraints (nogoods). 
+\textsc{Chuffed} can be executed as a na\"ive solver (denoted as \textsc{Chuffed}), a solver with automatic caching (\textsc{ChuffedC})~\cite{Smith2005}, or a solver with Lazy Clause Generation~\cite{ohrimenko2009propagation}. Although both \textsc{ChuffedC} and \textsc{ChuffedL} reduce redundant search, \textsc{ChuffedC} reuses active and non-satisfied constraints while \textsc{ChuffedL} uses constraints involved in conflicts to generate new constraints (nogoods). 
 %to exploit subproblem dominance (\textsc{ChuffedL}). 
-We conducted the experiment 
-on a personal computer (with an Intel Core i5-7300HQ 2.5GHz CPU, 8G of RAM). For generality, given the fixed parameter values of each problem, we randomly generated 10 instances, executed these instances for each tool, and reported the average runtime overhead between the 10 executions.
 
-Table~\ref{timecost} shows the runtime overhead of different solvers. 
-We set 10000 seconds for execution timeout. If a solver does not return any result within 10000 seconds, we terminated the execution. Because Gecode and \textsc{Chuffed} applied almost no optimization or only built-in negligible optimizations, both approaches ran overtime for four problems (No.~4 and 6-8). In contrast, \tool solved each of these problems within 100 seconds. 
-For the remaining problems, \tool achieved on average 698x speedup over Gecode and 790x speedup over \textsc{Chuffed}. \textbf{\tool outperformed general constraint solvers with a speedup of several hundreds. }
+We conducted the experiment 
+on a personal computer (with an Intel Core i5-7300HQ 2.5GHz CPU, 8G of RAM). 
+Table~\ref{timecost} shows the measured runtime overhead of different solvers. 
+For generality, given the size of input for each problem (Column 4), 
+we randomly generated 10 sets of input parameters, 
+executed each tool with these inputs, and reported the average runtime overhead among the 10 runs.
+We set 10000 seconds for execution timeout. If a solver does not return any result within 10000 seconds, we terminated the execution. 
+
+\subsection{Results}\label{sec:results}
+
+As shown in Table~\ref{timecost}, Gecode and \textsc{Chuffed} ran overtime for four problems (No.~4 and 6-8), mainly because these solvers applied 
+almost no optimization or only built-in basic optimizations. In contrast, \tool solved each of these problems within 100 seconds. 
+For the remaining problems, \tool achieved on average 698x speedup over Gecode and 790x speedup over \textsc{Chuffed}. 
+
+\begin{tcolorbox}
+	\textbf{Finding 1:} \emph{
+	\tool sped up general constraint solvers by several orders of magnitude. }
+\end{tcolorbox}
 
 We compared \tool with two optimized solvers: \textsc{ChuffedC} and \textsc{ChuffedL}. Unexpectedly, \textsc{ChuffedL} ran overtime for four problems (No.~2, 4, 6, and 8) while \tool solved all of them. 
 For four out of the other problems, \textsc{ChuffedL} executed more slowly than both unoptimized solvers. This may be because a lot of nogoods are generated and propagated based on conflicts, but these nogoods could not help reduce the search space. 
-For these five problems, \tool obtained 345x speedup over \textsc{ChuffedL} on average.
+For the five problems solvable by \textsc{ChuffedL}, 
+\tool obtained 345x speedup over \textsc{ChuffedL} on average.
 When solving all 9 problems, \tool achieved 23x speedup
 over \textsc{ChuffedC}. %For the last two problems with P2 instead of P1, \tool worked similarly to \textsc{ChuffedC} but caching and reusing solutions to subproblems.  
-\textbf{Our approach outperformed caching and LCG when solving DP problems and some non-DP problems with the P2 property.}
 
-Actually, the execution time of \tool is spent for two tasks: (1) model analysis (including transformation), and (2) constraint solving. To compare the benefit and cost of model analysis, we measured the analysis time cost. 
-As shown by the last column of Table~\ref{timecost}, \tool spent 0.03-0.18 second in analyzing each model and generating new models when necessary. The analysis time cost is negligible compared with the constraint solving time \tool saved over existing techniques. \textbf{Our approach significantly accelerated constraint solving without introducing substantial analysis overhead.}    
-	
+\begin{tcolorbox}
+	\textbf{Finding 2:} \emph{
+	\tool outperformed caching and LCG when solving DP problems and some non-DP problems with the P2 property.}
+\end{tcolorbox}
+
+Actually, the execution time of \tool is spent for two tasks: (1) model analysis (Section~\ref{sec:approach}), and (2) constraint solving. To compare the benefit and cost of model analysis, we measured the analysis time cost. 
+As shown by the last column in Table~\ref{timecost}, \tool spent 0.03-0.18 second in analyzing each model and generating new models as needed. The analysis time cost is negligible compared with the constraint solving time saved by \tool over current approaches. 
+
+\begin{tcolorbox}
+	\textbf{Finding 3:} \emph{
+	\tool significantly accelerated constraint solving without introducing substantial analysis overhead.}
+\end{tcolorbox}

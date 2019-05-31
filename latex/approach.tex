@@ -87,7 +87,7 @@ opt_N(V)&=max\text{ }o_N(V, b) \nonumber
 \end{align}
 
 Here, $o_N(V, b)$ calculates the value summation.
-The function $opt_i(V)$ defines the optimization goal for each subproblem related to the first $i$ items. When all possible value assignments are explored for $b$, $o_N(V, b)$ and $opt_N(V)$ functions can be executed to obtain the maximal summation. 
+The function $opt_i(V)$ defines the optimization goal for each subproblem related to the first $i$ items. We use $max$ instead of $maximize$ to indicate that the maximal value can be calculated by simply enumerating all possible values of variables without using any optimization or advanced algorithm such as search. When all possible value assignments are explored for $b$, $o_N(V, b)$ and $opt_N(V)$ functions can be executed to obtain the maximal summation. 
 
 %$o1(V, b)$ can be used to produce the value summations this function produces the value summations accordingly to obtain the maximal summation. 
 
@@ -347,9 +347,9 @@ Since both variables are related to constraints, \tool explores and assesses thr
         if i2-W1[i1]*i5>=0 /\ i3-V1[i1]*i5>=0 then
           dpvalue[i1-1,i2-W1[i1]*i5,i3-V1[i1]*i5,i4]
         else -1 endif
-      elseif i4<=i3 /\ i4-W1[i1-N1]*i5>=0 then
-        if dpvalue[i1-1,i2,i3,i4-W1[i1-N1]*i5] != -1 then
-          dpvalue[i1-1,i2,i3,i4-W1[i1-N1]*i5]+V2[i1-N1]*i5
+      elseif i4<=i3 /\ i4-W2[i1-N1]*i5>=0 then
+        if dpvalue[i1-1,i2,i3,i4-W2[i1-N1]*i5] != -1 then
+          dpvalue[i1-1,i2,i3,i4-W2[i1-N1]*i5]+V2[i1-N1]*i5
         else -1 endif
       else -1 endif;
     constraint

@@ -5,7 +5,7 @@
     %solving constraint models of dynamic programming problems
     }\label{timecost}
     \scriptsize
-		\begin{tabular}{l|l|p{3cm}| r| r| r| r| r| r|r}\toprule
+		\begin{tabular}{l|l|p{2.8cm}|p{2.2cm}| r| r| r| r| r|r}\toprule
 			\multirow{2}{*}{No.}&  \multirow{2}{*}{Problem}	&
 			\multirow{2}{*}{Extra Handling} &\multirow{2}{*}{Size of Input}	&	\multirow{2}{*}{Gecode}	&   \multirow{2}{*}{\textsc{Chuffed}}    & 
 			\multirow{2}{*}{\textsc{ChuffedC}}
@@ -16,7 +16,7 @@
 			
 			2 & Complete knapsack &	- & $N = 10^3, C = 10^3$ &	3985	&  4262    & 125	&$>$10000 &2 & 0.05	\\
 			
-			3 & Nested 0-1 knapsack & With multiple candidates &$N=100, C=100$ &357 & 496& 78 &672 & 1 & 0.03\\ 
+			3 & Nested 0-1 knapsack & With multiple candidates &$N=100, C1=100, Sum=20$ &357 & 496& 78 &672 & 1 & 0.03\\ 
 			
 			4 & Shortest path & With aftereffects (T=1) & $N=10^3$ & $>$10000 & $>$10000 & 784& $>$10000 & 97& 0.15\\
 			5 & Longest inc. subseq. & With aftereffects (T=1)	& $N = 10^3$ &1274	& 1653  &	34 & 1751 &	5 & 0.03	\\

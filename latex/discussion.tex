@@ -17,12 +17,12 @@ In practice, \tool’s capability is also limited by another two conditions:
 \item[(iv)] The available memory space allocated by users should be sufficient to hold a table. Suppose that
 \begin{itemize}
 \item[a)] there are $N$ elements in a candidate array;
-\item[b)] the size of each element's value range is $D$;
-\item[c)] there are $m$ ($m \geq 1$) accumulative functions related to the array;
+\item[b)] the size of each element's value range is $M$;
+\item[c)] there are $L$ ($L \geq 1$) accumulative functions related to the array;
 \item[d)] for the $i^{th}$ accumulative function, the size of the constraint value's range is $R_i$; and
 \item[e)] the aftereffect value is $T$.
 \end{itemize}
-Then the space complexity is $O(N D^T \prod\limits_{i=1}^m R_i)$. With this formula, \tool decides whether the complexity value is larger than the allocated space; if not, \tool optimizes the model.
+Then the space complexity is $O(N M^T \prod\limits_{i=1}^L R_i)$. With this formula, \tool decides whether the complexity value is larger than the allocated space; if not, \tool optimizes the model.
 \end{enumerate}
 \tool is not limited to solving ``pure'' DP problems; 
 it can handle some non-DP problems as long as the memoization of intermediate results can reduce duplicated calculation. 

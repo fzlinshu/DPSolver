@@ -4,11 +4,12 @@
 	
 	%In this section, we take 0-1 Knapsack problem as an example to present our approach. 0-1 Knapsack problem is described as follow:
 	\begin{quote}
-		\textbf{Problem Description:} There are $N$ items. There is a knapsack of capacity $C$. The $i^{th}$ item ($i \in N$) has value $V_i$ and weight $W_i$. Put a set of items $S \subseteq N$ in the knapsack, such that the sum of the weights is at most $C$ while the sum of values is maximal.  
+		\textbf{Problem Description:} There are $N$ items. There is a knapsack of capacity $C$. The $i^{th}$ item ($i \in [1,N]$) has value $V_i$ and weight $W_i$. Put a set of items $S \subseteq \{1,\ldots,N\}$ in the knapsack, such that the sum of the weights is at most $C$ while the sum of values is maximal.  
 		%Given a knapsack with  limited capacity C, and N items each has a positive profit and a positive weight. The goal is, select a set of items to put into the knapsack so that the total weight is less than or equal to the capacity of the knapsack, and the total profit of these items is as large as possible.
 	\end{quote}
 \noindent	
-The 0-1 knapsack problem is a typical COP and can be modeled with MiniZinc in the following way (see Figure~\ref{fig:knapsack}): 
+The 0-1 knapsack problem is a typical COP and can be modeled with MiniZinc in the following way (see Figure~\ref{fig:knapsack}):
+ 
 	\begin{figure}[htb]
 \begin{lstlisting}[frame=single]
 % Input arguments
@@ -25,13 +26,10 @@ The 0-1 knapsack problem is a typical COP and can be modeled with MiniZinc in th
 
 % Objective function
     solve maximize sum (i in knapsack)(V[i]);
-
-output ["\(knapsack)"];
 \end{lstlisting}
 \caption{Model of the 0-1 knapsack problem}\label{fig:knapsack}
 \end{figure}
-
-\noindent    
+\noindent
 Given the above model description, a general  constraint solver (e.g., Gecode) typically enumerates all possible subsets of $N$ to find the maximum value summation. Such na{\"i}ve search has $O(2^N)$ time complexity. Our research intends to significantly reduce this complexity. %to $O(NC)$.       
     
  

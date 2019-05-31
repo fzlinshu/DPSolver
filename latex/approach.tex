@@ -71,23 +71,23 @@ The value of $c_i$ helps decide whether an item should be added to the knapsack.
 %The $c_i$ function essentially defines the constraint for each subproblem. 
 %Here, $c_i$ means ``the remaining capacity limit for the last $(N-i)$ item''. 
 %The value of $c_i$ helps decide whether an item can be added to the knapsack. Namely, if the weight of $(i+1)^{th}$ item is greater than $c_i$, this item cannot be added.
-Actually, the $c_i$'s value is limited by the lower bound $min\{0, (N - i) * min\{W[1], \ldots, W[N]\}\}$. Because \tool scanned the input data and found all weight values to be greater than 0, the lower bound used in \ref{fun1} was simplified to 0.
+Actually, the $c_i$'s value is limited by the lower bound $min\{0, (N - i) \cdot min\{W[1], \ldots, W[N]\}\}$. Because \tool scanned the input data and found all weight values to be greater than 0, the lower bound used in (\ref{fun1}) was simplified to 0.
 
 Similarly, the objective function (\ref{eq2}) can be transferred to
 \begin{align}
 \label{fun2}
 o_0(V, b)&=0 \nonumber\\
 o_1(V, b)&=o_0(V, b) + b[1] * V[1]\nonumber\\
-opt_1(V, b)&=max \text{ }o_1(V, b) \nonumber\\
+opt_1(V)&=max \text{ }o_1(V, b) \nonumber\\
 \ldots \tag{3.4}\\
 o_N(V, b)&=o_{N-1}(V, b) + b[N] * V[N]\nonumber\\
-opt_N(V, b)&=max\text{ }o_N(V, b) \nonumber
+opt_N(V)&=max\text{ }o_N(V, b) \nonumber
 %optimal[i][j]&=\left\{
 %\right.
 \end{align}
 
 Here, $o_N(V, b)$ calculates the value summation.
-The function $opt_i(V, b)$ defines the optimization goal for each subproblem related to the first $i$ items. When all possible value assignments are explored for $b$, $o_N(V, b)$ and $opt_N(V, b)$ functions can be executed to obtain the maximal summation. 
+The function $opt_i(V)$ defines the optimization goal for each subproblem related to the first $i$ items. When all possible value assignments are explored for $b$, $o_N(V, b)$ and $opt_N(V)$ functions can be executed to obtain the maximal summation. 
 
 %$o1(V, b)$ can be used to produce the value summations this function produces the value summations accordingly to obtain the maximal summation. 
 
@@ -236,11 +236,11 @@ Specifically, given (1) a candidate variable $b$, (2) a series of constraint fun
            &=extreme\text{ }h(M[i-1, c_{i-1}], b[i]) \tag{3.5}
 \end{align}
 In $M$, $i$ corresponds to the array index range of $b$,
-$c_i$ represents the corresponding valid constraint value, while the cell $M[i, c_i]$ saves the extreme value computed for each subproblem, meaning ``\emph{given the first i elements and the constraint value $c[i]$, what is the extreme value of $o_i$}?''. When different values of $b[i]$ are enumerated, the corresponding $c_{i-1}$ can be different. Thus, multiple cells in the row $M[i-1]$ may be reused for computation, and $M[i, c_i]$ is usually decided
+$c_i$ represents the corresponding valid constraint value, while the cell $M[i, c_i]$ saves the extreme value computed for each subproblem, meaning ``\emph{given the first i elements and the constraint value $c_i$, what is the extreme value of $o_i$}?''. When different values of $b[i]$ are enumerated, the corresponding $c_{i-1}$ can be different. Thus, multiple cells in the row $M[i-1]$ may be reused for computation, and $M[i, c_i]$ is usually decided
 by the value comparison between these cells. 
 By generating such table-driven recursive functions to model a DP problem, \tool can produce a DP-oriented MiniZinc description. 
 
-Figure~\ref{fig:knapsack2} shows the newly generated model for our example. In particular, \codefont{solve::seq\_search} is used so that the solver does not apply any built-in basic optimization when solving the problem. 
+Figure~\ref{fig:knapsack2} shows the newly generated model for our example. 
 The space complexity of creating the $dpvalue$ table is $O(NC)$, while the time complexity is $O(NC)$. This time complexity refers to the whole resolution process because the DP-oriented model is resolved by propagation only.
 %\todo{1. Is this MiniZinc model? 2. More questions concerning the nested 0-1 knapsack problem (space/time complexity). 3. Without optimal substructure, is there any optimization? 4. Problems with after effect. How are the results saved?} 
 
@@ -253,35 +253,28 @@ The space complexity of creating the $dpvalue$ table is $O(NC)$, while the time 
     array[0..N, 0..C] of var int: dpvalue;
 
 % Constraints
-    constraint
-      forall(j in 0..C) (
-        dpvalue[0,j] = 0
-      );
-      function var int: calcValue(var int: i, 
-        var int: j, var int: k) =
-        if j-W[i]*k>=0 then
+    constraint forall(j in 0..C)
+      (dpvalue[0,j] = if j==0 then 0 else -1 endif);
+    function var int: calcValue(int: i, int: j, int: k) =
+      if j-W[i]*k>=0 then
+        if dpvalue[i-1,j-W[i]*k] != -1 then
           dpvalue[i-1,j-W[i]*k]+V[i]*k
-        else
-          0
-        endif;
+        else -1 endif
+      else -1 endif;
     constraint
-      forall(i in 1..N) (
-        forall (j in 0..C) (
-          dpvalue[i,j]=max(kk in 0..1)(calcValue(i,j,kk))
-        )
+      forall(i in 1..N, j in 0..C) (
+        dpvalue[i,j] = max(k in 0..1)(calcValue(i,j,k))
       );
 
 % Objective function    
-    solve::seq_search([int_search(dpvalue,
-      input_order,indomain_split,complete)]) 
-      maximize max(j in 0..C)(dpvalue[N,j]);
+    solve maximize max(j in 0..C)(dpvalue[N,j]);
 \end{lstlisting}
 \caption{DP-oriented model of the 0-1 knapsack problem}\label{fig:knapsack2}
 \end{figure}
 
 \textbf{Handling of Side Constraints.} 
 Some COP models are defined with \emph{side constraints} in addition to accumulative functions. \tool can still process such models by converting each side constraint to an \codefont{if}-clause. 
-For instance, a variant of the 0-1 knapsack problem can have an additional requirement as ``\emph{Item 3 must be put in the knapsack}'', which can be expressed as a side constraint ``\codefont{3 in knapsack}''. For this side constraint, \tool generates an \codefont{if}-clause ``\codefont{if i==3 then if k!=1 then 0 else ...}'' and inserts it to the beginning of the \codefont{calcValue(...)} function in Figure \ref{fig:knapsack2}.
+For instance, a variant of the 0-1 knapsack problem can have an additional requirement as ``\emph{Item 3 must be put in the knapsack}'', which can be expressed as a side constraint ``\codefont{3 in knapsack}''. For this side constraint, \tool generates an \codefont{if}-clause ``\codefont{if i==3 $/\backslash$ k!=1 then -1 else ...}'' and inserts it to the beginning of the \codefont{calcValue(...)} function in Figure \ref{fig:knapsack2}.
 
 %In addition, for other constraints without accumulative functions, \tool simply converts each constraint to an ``if-clause'', and then inserts it to the ``calcValue(...)'' function. For example, if we add a side constraint ``\texttt{3 in knapsack}'' to the 0-1 knapsack model, it will be converted to ``\texttt{if i==3 then if k!=1 then 0 else ...}'' and inserted to the beginning of the ``calcValue(...)'' function in Figure \ref{fig:knapsack2}.
  
@@ -300,7 +293,7 @@ To better explain this phase, we take the nested 0-1 knapsack problem as another
     array[1..N2] of int: V2, W2;
 
 % Variables
-    var int C2;
+    var int: C2;
     var set of 1..N1: K1;
     var set of 1..N2: K2;
 
@@ -311,13 +304,12 @@ To better explain this phase, we take the nested 0-1 knapsack problem as another
     
 % Objective function
     solve maximize sum (i in K2)(V2[i]);
-
-output ["\(K2)"];
 \end{lstlisting}
 \caption{Model of the nested 0-1 knapsack problem. There are two sets of items ($N1$ and $N2$).
 Choose items in both sets to separately fill two knapsacks: $K1$ and $K2$. If the value sum in $K1$ is used as the capacity of $K2$, try to maximize the value sum in $K2$.}\label{fig:knapsack3}
 \end{figure}
-When analyzing the problem, \tool identifies two candidate variables---$b_1$ and $b_2$---to separately represent subsets of $N1$ and $N2$.
+
+When analyzing the problem, \tool identifies two candidate variables---$b_1$ and $b_2$---to separately represent subsets $K1$ and $K2$.
 %---the boolean array reflecting different subsets of $N1$, and $b2$---another boolean array corresponding to subsets of $N2$. 
 Since both variables are related to constraints, \tool explores and assesses three potential ways to create DP-oriented models: 
 
@@ -329,60 +321,48 @@ Since both variables are related to constraints, \tool explores and assesses thr
       \item[(b)] Optimization based on $b_1$: When exhaustive search is used to fill $K2$ in various ways, for each generated weight sum $sum_w$ in $K2$, we need the value sum in $K1$ (i.e., C2) to be no less than $sum_w$ while the weight sum in $K1$ to be no more than $C1$. Because these converted problems do not have any objective function, they are not considered as DP problems. \tool does not create any model for optimization. 
      
      \item[(c)] Optimization based on $b_1$ and $b_2$: \tool concatenates $b_1$ and $b_2$ to create a larger array $b_3$. In $b_3$, the first $N1$ elements are involved in the first two constraints, while the last $N2$ elements are related to the third constraint and objective function. Thus, $b_3$ is still a candidate variable and the given problem is a DP problem. The exhaustive search obtains $O(2^{N1}2^{N2})$ time complexity. In comparison, DP search has both time and space complexity as 
-     $O((N1+N2)C1Sum)$ time complexity, where $Sum$ is the upper bound of $sum_w$. Consequently, the estimated speedup is $(2^{N1}2^{N2}/(N1+N2)C1Sum)$. 
+     $O((N1+N2)C1Sum^2)$ time complexity, where $Sum$ is the upper bound of $sum_w$. Consequently, the estimated speedup is $(2^{N1}2^{N2}/\left[(N1+N2)C1Sum^2\right])$. 
  \end{enumerate}
  
  	\begin{figure}[htb]
 \begin{lstlisting}[frame=single]
 % Input arguments
     ... % unchanged N1, N2, C1, V1, W1, V2, W2
-    int: maxW1 = 100;
-    % the maximum value of W1 obtained from the input
+    int: sum = 20;
+    % the upper bound of sum_w obtained from the input
 
 % Variables
-    var int: C2;
-    array[0..N1+N2,0..C1,0..maxW1*N1] of var int: dpvalue;
+    array[0..N1+N2,0..C1,0..sum,0..sum] of var int:
+      dpvalue;
 
 % Constraints
     constraint
-      forall(j in 0..C1) (
-        forall(k in 0..maxW1*N1)
-          dpvalue[0,j,k] = 0
+      forall(i2 in 0..C1, i3 in 0..sum, i4 in 0..sum) (
+          dpvalue[0,i2,i3,i4] =
+            if i2==0/\i3==0/\i4==0 then 0 else -1 endif
       );
-      function var int: calcValue(var int: i, 
-        var int: j, var int: k, var int: l) =
-        if i <= N1 then
-          if j-W1[i]*l>=0 then
-            if i == N1
-              /\ k!=dpvalue[i-1,j-W1[i]*l,k]+V1[i]*l then
-              0
-            else
-              dpvalue[i-1,j-W1[i]*l,k]+V1[i]*l
-            endif  
-          else
-            0
-          endif
-        else
-          if k-W2[i-N1]*l>=0 then
-            dpvalue[i-1,j,k-W2[i-N1]*l]+V2[i-N1]*l
-          else
-            0
-          endif
-        endif;
+    function var int: calcValue(int: i1, int: i2, int: i3,
+                                int: i4, int: i5) =
+      if i1 <= N1 then
+        if i2-W1[i1]*i5>=0 /\ i3-V1[i1]*i5>=0 then
+          dpvalue[i1-1,i2-W1[i1]*i5,i3-V1[i1]*i5,i4]
+        else -1 endif
+      elseif i4<=i3 /\ i4-W1[i1-N1]*i5>=0 then
+        if dpvalue[i1-1,i2,i3,i4-W1[i1-N1]*i5] != -1 then
+          dpvalue[i1-1,i2,i3,i4-W1[i1-N1]*i5]+V2[i1-N1]*i5
+        else -1 endif
+      else -1 endif;
     constraint
-      forall(i in 1..N) (
-        forall (j in 0..C1) (
-          forall (k in 0..maxW1*N1)
-            dpvalue[i,j,k]
-              =max(ll in 0..1)(calcValue(i,j,k,ll))
-        )
+      forall(i1 in 1..N1+N2, i2 in 0..C1,
+             i3 in 0..sum, i4 in 0..sum) (
+        dpvalue[i1,i2,i3,i4] =
+          max(i5 in 0..1)(calcValue(i1,i2,i3,i4,i5))
       );
 
 % Objective function    
-    solve::seq_search([int_search(dpvalue,
-      input_order,indomain_split,complete)]) 
-      maximize max(j in 0..C1)
-      (max(k in 0..maxW1*N1)(dpvalue[N,j,k]));
+    solve maximize
+      max(i2 in 0..C1, i3 in 0..sum, i4 in 0..sum)
+         (dpvalue[N1+N2,i2,i3,i4]);
 \end{lstlisting}
 \caption{DP-oriented model of the nested 0-1 knapsack problem when
 the optimization is based on both $b1$ and $b2$}\label{fig:knapsack4}
